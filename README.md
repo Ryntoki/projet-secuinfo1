@@ -22,12 +22,11 @@ Mise en place d'un système qui **détecte des attaques réseau**, **collecte le
 
 ## Équipe
 
-| Membre | 
-|---|---|
-| Landry Rayann| 
-| Calmels Nathan| 
-| Djokic Aleksandar| 
-| El Attari Kaouthar| 
+ Membre : 
+Landry Rayann
+Calmels Nathan
+Djokic Aleksandar
+El Attari Kaouthar
 
 ## Analyse et conclusion
 
