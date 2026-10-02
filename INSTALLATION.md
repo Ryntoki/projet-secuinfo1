@@ -16,16 +16,17 @@ sudo apt update && sudo apt upgrade -y
 **2 : Autoriser l'installation**
 ```bash
 sudo apt install curl apt-transport-https -y
-curl -fsSL [https://artifacts.elastic.co/GPG-KEY-elasticsearch](https://artifacts.elastic.co/GPG-KEY-elasticsearch) | sudo gpg --dearmor -o /usr/share/keyrings/elastic.gpg
+curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elastic.gpg
 ```
 
 **3 : Ajout du dépôt Elastic**
 ```bash
-echo "deb [signed-by=/usr/share/keyrings/elastic.gpg] [https://artifacts.elastic.co/packages/8.x/apt](https://artifacts.elastic.co/packages/8.x/apt) stable main" | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
+echo "deb [signed-by=/usr/share/keyrings/elastic.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
 ```
 
 **4 : Installation de Kibana et Elasticsearch**
 ```bash
+sudo apt update
 sudo apt install elasticsearch kibana -y
 ```
 
