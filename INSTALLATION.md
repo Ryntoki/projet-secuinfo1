@@ -83,7 +83,7 @@ Les identifiants du compte sont donc :
 * **Password** : *(mdp généré par la commande)*
 
 
-## 3. Suricata
+## 3. Snort
 
 
 
