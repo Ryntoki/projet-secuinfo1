@@ -4,6 +4,58 @@ Suivre les étapes dans l'ordre.
 
 ## 1. Machines virtuelles
 
+Le projet utilise deux machines virtuelles dans VirtualBox :
+- **une VM Ubuntu** : le serveur surveillé, avec ses cibles (site web Apache et accès SSH) et tous les outils de détection, de collecte et de visualisation ;
+- **une VM Kali** : l'attaquant, utilisée pour lancer les 5 scénarios.
+
+Les deux VM communiquent sur un réseau privé isolé. Les attaques ne sortiront jamais de ce réseau.
+
+### Prérequis
+- **VirtualBox 7.2 ou plus récent.** (La version 7.1 ne permet pas d'installer les Additions invité sur le noyau 7.0 d'Ubuntu 24.04.5 (voir « problèmes rencontrés »)).
+- L'image **Ubuntu 24.04 LTS Desktop** : "ubuntu-24.04.5-desktop-amd64.iso" (ubuntu.com, rubrique "past releases"). On n'utilise pas Ubuntu 26.04 : trop récente, certains outils risquent de ne pas encore être compatibles donc on ne prend pas de risques.
+- L'image **Kali pour VirtualBox** (kali.org, rubrique "Get Kali -> Virtual Machines").
+- Un PC avec **16 Go de RAM** recommandés pour faire tourner les deux VM en même temps (moins c'est possible mais cela risque d'être plus long pour certains éléménts).
+
+### Création de la VM Ubuntu
+Dans VirtualBox : **Machine -> Nouvelle**, choisir l'ISO Ubuntu, puis les réglages suivants :
+
+| Paramètre | Valeur | Pourquoi |
+|---|---|---|
+| Skip Unattended Installation | Coché | Garder la main sur l'installation et les droits administrateur |
+| Mémoire vive | 8192 Mo | Elasticsearch et Kibana demandent beaucoup de mémoire |
+| Processeurs | 4 | Suffisant pour faire tourner tous les outils |
+| Disque | 50 Go, non pré-alloué | Le fichier n'occupe que l'espace réellement utilisé |
+| Carte réseau 1 | NAT | Accès à Internet pour les téléchargements |
+| Carte réseau 2 | Réseau privé hôte | Réseau isolé entre Ubuntu et Kali qui utilisé pour les attaques |
+
+![Réglages de la VM Ubuntu](screenshots/reglagesubuntu.png)
+
+Installation d'Ubuntu : "installer Ubuntu" -> installation interactive -> sélection par défaut -> "effacer le disque et installer Ubuntu" (cela n'efface que le disque virtuel de la VM).
+
+### Mise à jour du système
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+Si Ubuntu propose ensuite de passer à la version 26.04, il faut refuser
+### Additions invité (copier-coller entre Windows et la VM ce qui facilitera la suite pour votre installation)
+Menu VirtualBox : **périphériques -> insérer l'image CD des additions invité**, puis dans le terminal :
+```bash
+sudo apt install -y bzip2 gcc make perl linux-headers-$(uname -r) build-essential dkms
+sudo sh /media/$USER/VBox_GAs_*/VBoxLinuxAdditions.run
+sudo reboot
+```
+Enfin : **périphériques -> presse-papier partagé -> bidirectionnel**. Dans le Terminal on peut maintenant coller avec “Ctrl+Maj+V”.
+
+### Import de la VM Kali
+1. Extraire l'archive (en ".7z") (clic droit -> extraire tout) dans le dossier où sont rangées les VM.
+2. Dans VirtualBox : **machine -> open…**, puis sélectionner le fichier ".vbox" de Kali.
+3. Configuration : mémoire vive 2048 Mo, carte réseau 1 en NAT, carte réseau 2 en réseau privé hôte.
+4. Démarrer Kali et utiliser les identifiants par défaut : “kali” / “kali”.
+
+![Les deux VM dans VirtualBox](screenshots/vm-liste.png)
+
+
+
 
 
 ## 2. Elasticsearch et Kibana 
