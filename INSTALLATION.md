@@ -135,6 +135,33 @@ Les identifiants du compte sont donc :
 * **Username** : `elastic`
 * **Password** : *(mdp généré par la commande)*
 
+### Adresses IP fixes
+Par défaut, la carte « Réseau privé hôte » reçoit une adresse automatique qui peut changer. On fixe l'adresse de chaque VM pour que Kali sache toujours où se trouve sa cible. On repère d'abord la carte et le nom de sa connexion :
+```bash
+ip -br a
+nmcli con show
+```
+Sur **Ubuntu** (carte "enp0s8", connexion "netplan-enp0s8") :
+```bash
+sudo nmcli con mod "netplan-enp0s8" ipv4.addresses 192.168.56.10/24 ipv4.method manual
+sudo nmcli con up "netplan-enp0s8"
+```
+Sur **Kali** (carte "eth1", connexion "Wired connection 2") :
+```bash
+sudo nmcli con mod "Wired connection 2" ipv4.addresses 192.168.56.20/24 ipv4.method manual
+sudo nmcli con up "Wired connection 2"
+```
+La carte NAT ("enp0s3" / "eth0") n'est pas modifiée : elle sert à l'accès Internet.
+
+### Test de communication
+Depuis Kali :
+```bash
+ping -c 4 192.168.56.10
+```
+Résultat obtenu : 4 paquets envoyés, 4 reçus, 0 % de perte. Les deux VM communiquent.
+
+
+
 
 ## 3. Snort
 
