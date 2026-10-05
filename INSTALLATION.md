@@ -79,7 +79,7 @@ ping -c 4 192.168.56.10
 ```
 Résultat obtenu : 4 paquets envoyés, 4 reçus, 0 % de perte. Les deux VM communiquent.
 
-
+![Résultat du ping](screenshots/vm-ping.png)
 
 
 ## 2. Elasticsearch et Kibana 
