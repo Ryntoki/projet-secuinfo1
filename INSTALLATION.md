@@ -120,7 +120,7 @@ sudo systemctl status elasticsearch.service
 
 Si Elastic ne se lance pas, possible erreur avec la RAM (status = 137).
 
-<img width="705" height="234" alt="Erreur RAM" src="https://github.com/user-attachments/assets/6cda4043-90f2-4d80-ae4c-139feb3bbd5c" />
+![Erreur RAM](screenshots/Erreur_RAM.png)
 
 Alors copier ces commandes (on limite l'utilisation de la RAM à 512 Mo car il consomme beaucoup sinon) :
 ```bash
@@ -138,7 +138,7 @@ Lien web vers Elastic : `http://localhost:5601`
 
 Vous arrivez ici : 
 
-<img width="385" height="307" alt="token_elastic" src="https://github.com/user-attachments/assets/fae3d6ea-3a5a-42bb-91e2-65ccf277bc59" />
+![Token elastic](screenshots/token_elastic.png)
 
 Commande pour générer le token d'enrôlement (expire en 30 minutes, à refaire en utilisant la même commande) :
 ```bash
