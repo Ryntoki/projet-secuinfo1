@@ -169,7 +169,48 @@ Les identifiants du compte sont donc :
 
 ## 4. syslog-ng
 
+**1. Installation des paquets**
 
+```bash
+sudo apt update && sudo apt install openssh-server apache2 syslog-ng -y
+```
+
+**2. Ajout de la configuration à la fin du fichier syslog-ng.conf**
+
+```bash
+sudo nano /etc/syslog-ng/syslog-ng.conf
+```
+A rajouter à la fin du fichier : 
+
+```bash
+source s_ssh { file("/var/log/auth.log"); };
+source s_web { file("/var/log/apache2/access.log" flags(no-parse)); };
+source s_snort { file("/var/log/snort/alert" flags(no-parse)); };
+
+destination d_elastic {
+    elasticsearch-http(
+        index("projet-secu-${YEAR}.${MONTH}.${DAY}")
+        type("")
+        url("https://localhost:9200/_bulk")
+        user("elastic")
+        password("VOTRE_MOT_DE_PASSE_ELASTIC")
+        tls(ca-file("/etc/elasticsearch/certs/http_ca.crt"))
+    );
+};
+
+log {
+    source(s_ssh);
+    source(s_web);
+    source(s_snort);
+    destination(d_elastic);
+};
+```
+
+**3. Redémarrage du service pour appliquer les changements**
+
+```bash
+sudo systemctl restart syslog-ng
+```
 
 ## 5. Alertes par e-mail
 
