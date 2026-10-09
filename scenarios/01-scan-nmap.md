@@ -1,4 +1,4 @@
-# Scénario 1 — Scan de ports (nmap)
+# Scénario 1 : Scan de ports (nmap)
 
 ## Description
 L'attaquant utilise nmap en mode SYN scan pour sonder les 1000 ports les plus
