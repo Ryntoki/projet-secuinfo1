@@ -274,11 +274,18 @@ sudo systemctl status snort
 Le statut doit afficher `active (running)`.
 
 **7 : Lancer Snort en mode console pour les tests et captures**
+
+**ATTENTION** :Toujours arrêter le service avant, pour éviter que deux instances de Snort
+surveillent la même interface en même temps (alertes en double, conflit d'accès) :
 ```bash
+sudo systemctl stop snort
 sudo snort -A fast -q -c /etc/snort/snort.conf -i enp0s8 -l /var/log/snort
 ```
-Ce mode écrit les alertes à la fois à l'écran et dans `/var/log/snort/alert`
-(fichier lu ensuite par syslog-ng pour l'envoi vers Elasticsearch).
+**Important** : c'est ce mode (console, avec `-l /var/log/snort`) qui écrit dans
+`/var/log/snort/alert`, le fichier lu par syslog-ng. Le service seul (`systemctl
+start snort`) écrit dans un fichier différent (`/var/log/snort/snort.alert.fast`)
+que syslog-ng ne lit pas. **Pour toute démonstration ou capture d'alertes, toujours
+utiliser le mode console, jamais le service seul.**
 
 **8 : Remettre le service en fonctionnement normal**
 ```bash
@@ -290,7 +297,8 @@ sudo systemctl start snort
 | Problème | Solution |
 |---|---|
 | `grep: /etc/snort/snort.debian.conf: Permission denied` | Le fichier n'est lisible que par root : ajouter `sudo` devant la commande. |
-| Les alertes DVWA (XSS, injection SQL) ne se déclenchent pas en testant depuis le navigateur d'Ubuntu | Le trafic local (`localhost`) ne passe jamais par l'interface réseau `enp0s8` surveillée par Snort. Toujours tester en visant `192.168.56.102` depuis la VM Kali. |
+| Les alertes DVWA (XSS, injection SQL) ne se déclenchent pas en testant depuis le navigateur d'Ubuntu | Le trafic local (`localhost`) ne passe jamais par l'interface réseau `enp0s8` surveillée par Snort. Toujours tester en visant `192.168.56.10` depuis la VM Kali. |
+| Le service `snort` tourne mais syslog-ng ne reçoit rien | Le service écrit dans `/var/log/snort/snort.alert.fast`, pas dans `/var/log/snort/alert`. Utiliser le mode console (`-A fast -l /var/log/snort`, étape 7) pour les tests/démos, c'est le seul qui alimente syslog-ng. |
 | `Ctrl+C` ne stoppe pas immédiatement Snort en mode console | Snort attend qu'un paquet arrive sur l'interface pour traiter le signal d'arrêt. Générer un peu de trafic (ping, navigation) ou utiliser `sudo pkill snort` depuis un second terminal. |
 
 ## 4. syslog-ng
