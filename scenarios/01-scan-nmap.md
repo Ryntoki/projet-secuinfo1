@@ -12,7 +12,7 @@ pas seulement des attaques déjà abouties.
 
 ## Commande lancée (depuis Kali, 192.168.56.103)
 
-nmap -sS 192.168.56.102
+nmap -sS 192.168.56.10
 
 ## Règle de détection (Snort)
 
@@ -29,7 +29,7 @@ signature typique d'un scan de ports.
 Des dizaines d'alertes similaires apparaissent, une par port scanné.
 
 ## Capture Kibana
-(P1?)
+![Détection dans Kibana](../screenshots/nmap-dectecte.png)
 
 ## E-mail reçu
 (P4?)
