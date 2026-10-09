@@ -165,7 +165,87 @@ Les identifiants du compte sont donc :
 
 ## 3. Snort
 
+**1 : Vérifier la disponibilité du paquet**
+```bash
+apt-cache policy snort
+```
+Si une ligne « Candidat : 2.9… » apparaît, Snort s'installe en une seule commande.
 
+**2 : Installation**
+```bash
+sudo apt install snort -y
+```
+Pendant l'installation, deux questions sont posées :
+- Interface réseau à surveiller : `enp0s8` (la carte du réseau privé hôte, celle
+  utilisée pour les attaques — pas `enp0s3`, qui est la carte NAT utilisée
+  uniquement pour l'accès Internet).
+- Adresse du réseau local (HOME_NET) : `192.168.56.0/24`.
+
+**3 : Vérifier/corriger la configuration**
+```bash
+sudo grep DEBIAN_SNORT /etc/snort/snort.debian.conf
+```
+Le résultat attendu :
+
+DEBIAN_SNORT_STARTUP="boot"
+DEBIAN_SNORT_HOME_NET="192.168.56.0/24"
+DEBIAN_SNORT_OPTIONS=""
+DEBIAN_SNORT_INTERFACE="enp0s8"
+DEBIAN_SNORT_SEND_STATS="true"
+
+Si `DEBIAN_SNORT_INTERFACE` contient plusieurs interfaces (ex. `"enp0s3 enp0s8"`),
+la corriger pour ne garder que `enp0s8` :
+```bash
+sudo sed -i 's/^DEBIAN_SNORT_INTERFACE=.*/DEBIAN_SNORT_INTERFACE="enp0s8"/' /etc/snort/snort.debian.conf
+```
+
+**4 : Valider la configuration**
+```bash
+sudo snort -T -c /etc/snort/snort.conf -i enp0s8
+```
+Le message final attendu est « Snort successfully validated the configuration! ».
+
+**5 : Ajouter les règles de détection des 5 scénarios**
+```bash
+echo 'alert tcp any any -> $HOME_NET any (msg:"SCAN Possible nmap scan detecte"; flags:S; threshold: type threshold, track by_src, count 5, seconds 3; sid:1000002; rev:1;)' | sudo tee -a /etc/snort/rules/local.rules
+
+echo 'alert tcp any any -> $HOME_NET 22 (msg:"SSH Brute Force attempt"; flow:to_server,established; threshold: type threshold, track by_src, count 5, seconds 10; sid:1000003; rev:1;)' | sudo tee -a /etc/snort/rules/local.rules
+
+echo 'alert tcp any any -> $HOME_NET 80 (msg:"SQL Injection attempt detecte"; content:"UNION"; nocase; http_uri; sid:1000004; rev:1;)' | sudo tee -a /etc/snort/rules/local.rules
+
+echo 'alert tcp any any -> $HOME_NET 80 (msg:"XSS attempt detecte"; content:"<script"; nocase; http_uri; sid:1000005; rev:1;)' | sudo tee -a /etc/snort/rules/local.rules
+
+echo 'alert tcp any any -> $HOME_NET 80 (msg:"Directory Traversal attempt detecte"; content:"../"; http_uri; sid:1000006; rev:1;)' | sudo tee -a /etc/snort/rules/local.rules
+
+echo 'alert tcp any any -> $HOME_NET any (msg:"DOS SYN Flood attempt detecte"; flags:S; threshold: type threshold, track by_src, count 50, seconds 2; sid:1000007; rev:1;)' | sudo tee -a /etc/snort/rules/local.rules
+```
+
+**6 : Démarrer et vérifier le service**
+```bash
+sudo systemctl restart snort
+sudo systemctl status snort
+```
+Le statut doit afficher `active (running)`.
+
+**7 : Lancer Snort en mode console pour les tests et captures**
+```bash
+sudo snort -A fast -q -c /etc/snort/snort.conf -i enp0s8 -l /var/log/snort
+```
+Ce mode écrit les alertes à la fois à l'écran et dans `/var/log/snort/alert`
+(fichier lu ensuite par syslog-ng pour l'envoi vers Elasticsearch).
+
+**8 : Remettre le service en fonctionnement normal**
+```bash
+sudo systemctl start snort
+```
+
+## Problèmes rencontrés et solutions
+
+| Problème | Solution |
+|---|---|
+| `grep: /etc/snort/snort.debian.conf: Permission denied` | Le fichier n'est lisible que par root : ajouter `sudo` devant la commande. |
+| Les alertes DVWA (XSS, injection SQL) ne se déclenchent pas en testant depuis le navigateur d'Ubuntu | Le trafic local (`localhost`) ne passe jamais par l'interface réseau `enp0s8` surveillée par Snort. Toujours tester en visant `192.168.56.102` depuis la VM Kali. |
+| `Ctrl+C` ne stoppe pas immédiatement Snort en mode console | Snort attend qu'un paquet arrive sur l'interface pour traiter le signal d'arrêt. Générer un peu de trafic (ping, navigation) ou utiliser `sudo pkill snort` depuis un second terminal. |
 
 ## 4. syslog-ng
 
