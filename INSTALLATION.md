@@ -206,19 +206,50 @@ sudo snort -T -c /etc/snort/snort.conf -i enp0s8
 Le message final attendu est « Snort successfully validated the configuration! ».
 
 **5 : Ajouter les règles de détection des 5 scénarios**
+
 ```bash
 echo 'alert tcp any any -> $HOME_NET any (msg:"SCAN Possible nmap scan detecte"; flags:S; threshold: type threshold, track by_src, count 5, seconds 3; sid:1000002; rev:1;)' | sudo tee -a /etc/snort/rules/local.rules
+```
+Détecte les paquets SYN (`flags:S`, premier paquet d'une connexion TCP) : au-delà
+de 5 en 3 secondes depuis la même source (`threshold`), c'est un balayage de
+ports plutôt qu'une navigation normale.
 
+```bash
 echo 'alert tcp any any -> $HOME_NET 22 (msg:"SSH Brute Force attempt"; flow:to_server,established; threshold: type threshold, track by_src, count 5, seconds 10; sid:1000003; rev:1;)' | sudo tee -a /etc/snort/rules/local.rules
+```
+Cible uniquement le port SSH (22) et les connexions réellement établies
+(`flow:to_server,established`). Seuil de 5 tentatives en 10 secondes : une
+succession rapide d'authentifications trahit un outil comme hydra.
 
+```bash
 echo 'alert tcp any any -> $HOME_NET 80 (msg:"SQL Injection attempt detecte"; content:"UNION"; nocase; http_uri; sid:1000004; rev:1;)' | sudo tee -a /etc/snort/rules/local.rules
+```
+Cherche le mot-clé `UNION` dans l'URL des requêtes HTTP (`http_uri`), sans
+tenir compte de la casse (`nocase`). Une seule occurrence suffit à déclencher
+l'alerte, pas besoin de seuil.
 
+```bash
 echo 'alert tcp any any -> $HOME_NET 80 (msg:"XSS attempt detecte"; content:"<script"; nocase; http_uri; sid:1000005; rev:1;)' | sudo tee -a /etc/snort/rules/local.rules
+```
+Même logique que l'injection SQL, mais recherche la balise `<script` dans l'URL :
+signature typique d'une tentative d'injection de code côté navigateur.
 
+```bash
 echo 'alert tcp any any -> $HOME_NET 80 (msg:"Directory Traversal attempt detecte"; content:"../"; http_uri; sid:1000006; rev:1;)' | sudo tee -a /etc/snort/rules/local.rules
+```
+Recherche le motif `../` dans l'URL, utilisé pour remonter hors du dossier web
+et accéder à des fichiers du système normalement inaccessibles.
 
+```bash
 echo 'alert tcp any any -> $HOME_NET any (msg:"DOS SYN Flood attempt detecte"; flags:S; threshold: type threshold, track by_src, count 50, seconds 2; sid:1000007; rev:1;)' | sudo tee -a /etc/snort/rules/local.rules
 ```
+Même principe que la règle de scan, mais avec un seuil bien plus élevé (50 paquets
+SYN en 2 secondes) : ce volume distingue une inondation visant à saturer le
+serveur d'un simple scan de ports.
+
+Les `sid` (identifiants de règle) commencent à 1000002 : les valeurs en dessous
+de 1 000 000 sont réservées aux règles officielles de Snort, celles au-dessus
+sont libres pour nos règles personnalisées.
 
 **6 : Démarrer et vérifier le service**
 ```bash
