@@ -1,4 +1,4 @@
-# Scénario 4 — XSS (reflected) et parcours de répertoires
+# Scénario 4 : XSS (reflected) et parcours de répertoires
 
 ## Description
 Deux failles testées sur le même site DVWA :
@@ -31,7 +31,7 @@ content:”../”; http_uri; sid:1000006; rev:1;)
 
 ## Logs collectés (/var/log/snort/alert)
 
-<img width="1470" height="74" alt="image" src="https://github.com/user-attachments/assets/3704932a-28ca-4b30-89ad-1049e3bfe61e" />
+<img width="1739" height="93" alt="image" src="https://github.com/user-attachments/assets/1bf3a53a-82db-49ba-9674-42b64f262693" />
 
 ## Capture Kibana
 (P1?)
