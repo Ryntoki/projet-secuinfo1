@@ -11,10 +11,15 @@ le vol de données, bien plus dangereuse qu'un scan ou un brute force puisqu'ell
 touche directement le contenu de la base.
 
 ## Commande lancée (depuis Kali)
-```bash
-curl -g "http://192.168.56.10/index.php?id=1%20UNION%20SELECT%20user,password%20FROM%20users"
+
+Sur DVWA (sécurité réglée sur « Low »), page **SQL Injection**, entrer dans le champ **User ID** :
 ```
-Le serveur répond « 404 Not Found » (la page n'existe pas), mais la requête contenant `UNION` est bien passée sur le réseau et détectée par Snort.
+1' UNION SELECT user, password FROM users-- -
+```
+DVWA renvoie la liste complète des utilisateurs et leurs mots de passe hashés : l'injection a réussi.
+
+![Injection SQL réussie sur DVWA](../screenshots/injectsql-dvwa.png)
+
 
 ## Règle de détection (Snort)
 
