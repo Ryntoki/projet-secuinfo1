@@ -1,4 +1,4 @@
-# Scénario 5 — Déni de service SYN flood (hping3)
+# Scénario 5 : Déni de service SYN flood (hping3)
 
 ## Description
 L'attaquant envoie un très grand nombre de paquets TCP SYN vers le port 80 du
@@ -24,7 +24,7 @@ distinguer un flood volumétrique d'un simple scan de ports.
 
 ## Logs collectés (/var/log/snort/alert)
 
-<img width="1389" height="74" alt="image" src="https://github.com/user-attachments/assets/3da0c13d-06fb-473d-9ce1-ae7bcf409f22" />
+<img width="1846" height="96" alt="image" src="https://github.com/user-attachments/assets/217db61c-8261-4edb-8043-7b17e4c3db06" />
 
 Des centaines d'alertes similaires en quelques secondes, une par paquet SYN détecté.
 
