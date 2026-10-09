@@ -10,25 +10,33 @@ C'est l'exemple donné dans l'énoncé du projet. Montre une attaque applicative
 le vol de données, bien plus dangereuse qu'un scan ou un brute force puisqu'elle
 touche directement le contenu de la base.
 
-## Commande lancée (depuis le navigateur, sur Kali)
-
-http://192.168.56.102/vulnerabilities/sqli/ dans "SQL Injection"
-Champ User ID : 1' UNION SELECT user, password FROM users-- -
+## Commande lancée (depuis Kali)
+```bash
+curl -g "http://192.168.56.10/index.php?id=1%20UNION%20SELECT%20user,password%20FROM%20users"
+```
+Le serveur répond « 404 Not Found » (la page n'existe pas), mais la requête contenant `UNION` est bien passée sur le réseau et détectée par Snort.
 
 ## Règle de détection (Snort)
 
 alert tcp any any -> $HOME_NET 80 (msg:“SQL Injection attempt detecte”;
 content:“UNION”; nocase; http_uri; sid:1000004; rev:1;)
 
-Se déclenche quand le mot-clé `UNION` apparaît dans l'URL d'une requête HTTP vers
-le port 80 — signature classique d'une injection SQL par UNION.
+Se déclenche quand le mot-clé `UNION` apparaît dans l'URL d'une requête HTTP vers le port 80, signature classique d'une injection SQL par UNION. `nocase` ignore la casse, `http_uri` cible la partie URL de la requête.
 
 ## Logs collectés (/var/log/snort/alert)
+```bash
+grep "SQL Injection" /var/log/snort/alert | tail -3
+```
+![Alerte Snort injection SQL](../screenshots/log-sql.png)
 
-<img width="1839" height="42" alt="image" src="https://github.com/user-attachments/assets/39592946-c353-4b50-8cb6-c16c29d41d20" />
+Ce log est prioritaire car il contient la requête malveillante exacte, avec l'IP source (192.168.56.20) et la cible (192.168.56.10). Le journal d'Apache (`access.log`) garde également une trace de la requête reçue.
 
-## Capture Kibana
-(P1?)
+## Résultat dans Kibana
+Filtre : `snort.signature : "SQL Injection attempt detecte"`
+
+![Détection dans Kibana](../screenshots/injectsql-kibana.png)
+
+L'alerte apparaît avec la priorité 1 : une injection SQL réussie permet de lire ou modifier toute la base de données.
 
 ## E-mail reçu
 (P4?)
