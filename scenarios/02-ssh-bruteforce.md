@@ -1,4 +1,4 @@
-# Scénario 2 — Brute force SSH (hydra)
+# Scénario 2 : Brute force SSH (hydra)
 
 ## Description
 L'attaquant teste automatiquement une liste de mots de passe contre le compte
