@@ -29,7 +29,7 @@ même source en 10 secondes.
 
 ## Logs collectés (/var/log/snort/alert)
 
-<img width="1332" height="70" alt="image" src="https://github.com/user-attachments/assets/c2703c74-64c9-4adb-884f-730c94944eb5" />
+<img width="1855" height="162" alt="image" src="https://github.com/user-attachments/assets/08155e9a-b3e7-4b68-85a3-53f33bdabd0b" />
 
 Complété côté cible par le journal `auth.log` (connexions SSH échouées), géré par P2.
 
