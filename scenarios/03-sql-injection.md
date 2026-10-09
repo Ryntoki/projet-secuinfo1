@@ -1,4 +1,4 @@
-# Scénario 3 — Injection SQL
+# Scénario 3 : Injection SQL
 
 ## Description
 L'attaquant exploite un formulaire vulnérable du site web (DVWA) pour injecter du
