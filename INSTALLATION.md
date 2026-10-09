@@ -159,7 +159,32 @@ Les identifiants du compte sont donc :
 * **Username** : `elastic`
 * **Password** : *(mdp généré par la commande)*
 
+**8 : Création de la Data View dans Kibana**
+1. Accéder à l'interface web : `http://localhost:5601`.
+2. Aller dans : **Management -> Stack Management -> Data Views -> Create data view**.
+3. Renseigner les paramètres suivants :
+   * **Name** : `Projet Secu`
+   * **Index pattern** : `projet-secu-*`
+   * **Timestamp field** : `@timestamp`
 
+![Configuration de la Data View](screenshots/data%20view.png)
+
+**9 : Exploration et vue tabulaire des événements (Discover)**
+Dans le menu **Discover**, sélectionner la Data View `Projet Secu` et ajouter les colonnes requises pour analyser les incidents :
+* `@timestamp` : horodatage précis de l'attaque
+* `src_ip` : adresse IP attaquante (Kali : `192.168.56.20`)
+* `dest_ip` : adresse IP cible (Ubuntu : `192.168.56.10`)
+* `message` : descriptif et signature de l'attaque détectée
+
+![Tableau des logs sous Kibana Discover](screenshots/visualisation%20des%20attaques.png)
+
+**10 : Dashboard de supervision SOC**
+Dans le menu **Dashboards -> Create dashboard**, mise en place des visualisations de suivi :
+* **Compteur d'alertes (Metric)** : affiche le total des 5 attaques détectées sur la période.
+* **Tableau de suivi chronologique** : détails exploitables pour l'analyste SOC.
+* **Plage temporelle** : ajustée sur les 15 derniers jours pour englober l'ensemble des scénarios d'attaque.
+
+![Dashboard SOC Kibana](screenshots/dashboard%205%20attaques.png)
 
 
 
