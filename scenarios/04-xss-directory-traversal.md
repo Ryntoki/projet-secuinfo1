@@ -31,7 +31,10 @@ content:”../”; http_uri; sid:1000006; rev:1;)
 
 ## Logs collectés (/var/log/snort/alert)
 
-<img width="1739" height="93" alt="image" src="https://github.com/user-attachments/assets/1bf3a53a-82db-49ba-9674-42b64f262693" />
+<img width="1752" height="29" alt="image" src="https://github.com/user-attachments/assets/b3082c06-9634-4906-a00b-be99ed113ed6" />
+
+<img width="1857" height="55" alt="image" src="https://github.com/user-attachments/assets/610694da-bb30-4a5b-a6b9-f0c39d03c70d" />
+
 
 ## Capture Kibana
 (P1?)
