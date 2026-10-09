@@ -29,7 +29,7 @@ signature typique d'un scan de ports.
 Des dizaines d'alertes similaires apparaissent, une par port scanné.
 
 ## Capture Kibana
-![Détection dans Kibana](../screenshots/nmap-dectecte.png)
+![Détection dans Kibana](../screenshots/nmap-detecte.png)
 
 ## E-mail reçu
 (P4?)
