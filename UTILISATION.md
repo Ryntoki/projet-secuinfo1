@@ -54,7 +54,7 @@ nmap -sS 192.168.56.10
 
 ### Scénario 2 — Brute force SSH (hydra)
 ```bash
-hydra -l vboxuser -P petite-liste.txt -t 4 ssh://192.168.56.102
+hydra -l vboxuser -P petite-liste.txt -t 4 ssh://192.168.56.10
 ```
 *(`petite-liste.txt` : liste de mots de passe réduite, voir `scenarios/02-ssh-bruteforce.md`
 pour la générer à partir de rockyou.txt)*
