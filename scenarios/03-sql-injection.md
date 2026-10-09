@@ -25,7 +25,7 @@ le port 80 — signature classique d'une injection SQL par UNION.
 
 ## Logs collectés (/var/log/snort/alert)
 
-<img width="1399" height="36" alt="image" src="https://github.com/user-attachments/assets/e2d5d724-6854-4996-a8b6-4460bea4ea24" />
+<img width="1841" height="77" alt="image" src="https://github.com/user-attachments/assets/f2a9cd96-351b-42f6-81bf-4928f01f1881" />
 
 ## Capture Kibana
 (P1?)
