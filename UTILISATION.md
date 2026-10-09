@@ -58,6 +58,8 @@ http://192.168.56.102/vulnerabilities/sqli/
 
 ### Scénario 4 — XSS et directory traversal
 
+Toujours sur DVWA, mais cette fois ci on travaille sur les sections "XSS (Reflective)" et "File Inclusion" (pas besoin de cliquer dessus, copier-coller les liens ci dessous devrait suffir) :
+
 http://192.168.56.102/vulnerabilities/xss_r/?name=<script>alert(‘XSS’)</script>
 http://192.168.56.102/vulnerabilities/fi/?page=../../../../etc/passwd
 
