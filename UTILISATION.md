@@ -25,6 +25,20 @@ sudo systemctl start snort
 
 ---
 
+### RAPPEL : Vérifier la détection
+Sur Ubuntu :
+
+Après avoir lancer la commande : 
+```bash
+sudo snort -A fast -q -c /etc/snort/snort.conf -i enp0s8 -l /var/log/snort
+```
+faites le scénario de votre choix tout en laissant la commande d'au dessus tourner. Une fois ceci fait, faites CTRL+C puis : 
+```bash
+sudo sudo systemctl start snort
+sudo tail -20 /var/log/snort/alert
+```
+on peut choisir arbitrairement le nombre de ligne que l'on veut voir (20 ou 30 suffit en générale).
+
 ## Rejouer les attaques (depuis la VM Kali)
 
 Prérequis : les deux VM (Ubuntu et Kali) doivent être démarrées et sur le même
@@ -70,12 +84,6 @@ sudo hping3 -S --flood -p 80 192.168.56.102
 ```
 Laisser tourner 5 à 10 secondes puis `Ctrl+C`. Attention : peut ralentir la VM
 Ubuntu, c'est l'effet recherché.
-
-### Vérifier la détection
-Sur Ubuntu :
-```bash
-sudo tail -20 /var/log/snort/alert
-```
 
 
 ## Voir les résultats dans Kibana
