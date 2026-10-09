@@ -177,7 +177,7 @@ sudo apt install snort -y
 ```
 Pendant l'installation, deux questions sont posées :
 - Interface réseau à surveiller : `enp0s8` (la carte du réseau privé hôte, celle
-  utilisée pour les attaques — pas `enp0s3`, qui est la carte NAT utilisée
+  utilisée pour les attaques, pas `enp0s3`, qui est la carte NAT utilisée
   uniquement pour l'accès Internet).
 - Adresse du réseau local (HOME_NET) : `192.168.56.0/24`.
 
