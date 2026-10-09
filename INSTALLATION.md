@@ -326,6 +326,64 @@ sudo systemctl start snort
 | Le service `snort` tourne mais syslog-ng ne reçoit rien | Le service écrit dans `/var/log/snort/snort.alert.fast`, pas dans `/var/log/snort/alert`. Utiliser le mode console (`-A fast -l /var/log/snort`, étape 7) pour les tests/démos, c'est le seul qui alimente syslog-ng. |
 | `Ctrl+C` ne stoppe pas immédiatement Snort en mode console | Snort attend qu'un paquet arrive sur l'interface pour traiter le signal d'arrêt. Générer un peu de trafic (ping, navigation) ou utiliser `sudo pkill snort` depuis un second terminal. |
 
+## Site web cible pour les attaques 3 et 4 (DVWA)
+
+Nécessaire pour l'injection SQL (scénario 3) et le XSS / directory traversal
+(scénario 4) : un site web volontairement vulnérable, DVWA (Damn Vulnerable
+Web Application).
+
+**1 : Installer Apache, PHP et MariaDB**
+```bash
+sudo apt install apache2 php libapache2-mod-php php-mysqli php-gd mariadb-server git -y
+sudo systemctl enable --now apache2 mariadb
+```
+
+**2 : Installer DVWA**
+```bash
+cd /var/www/html
+sudo rm -f index.html
+sudo git clone https://github.com/digininja/DVWA.git .
+sudo chown -R www-data:www-data /var/www/html
+sudo chmod -R 755 /var/www/html
+```
+
+**3 : Créer la base de données**
+```bash
+sudo mysql -u root -e "CREATE DATABASE dvwa; CREATE USER 'dvwa'@'localhost' IDENTIFIED BY 'dvwapass'; GRANT ALL ON dvwa.* TO 'dvwa'@'localhost'; FLUSH PRIVILEGES;"
+```
+
+**4 : Configurer DVWA**
+```bash
+sudo cp config/config.inc.php.dist config/config.inc.php
+sudo sed -i "s/\$_DVWA\[ 'db_user' \].*/\$_DVWA[ 'db_user' ] = getenv('DB_USER') ?: 'dvwa';/" config/config.inc.php
+sudo sed -i "s/\$_DVWA\[ 'db_password' \].*/\$_DVWA[ 'db_password' ] = getenv('DB_PASSWORD') ?: 'dvwapass';/" config/config.inc.php
+sudo chown www-data:www-data config/config.inc.php
+sudo systemctl restart apache2
+```
+
+**5 : Initialiser la base depuis le navigateur**
+- Depuis Kali : `http://192.168.56.10/setup.php`
+- Cliquer sur **Create / Reset Database**.
+
+**6 : Se connecter**
+- `http://192.168.56.10/login.php`
+- Identifiants : `admin` / `password`
+  *(différents des identifiants MySQL `dvwa` / `dvwapass`, utilisés uniquement dans le fichier de config)*
+- Une fois connecté : menu **DVWA Security** → sélectionner **Low** → **Submit**.
+  À refaire si on se reconnecte avec une nouvelle session.
+
+**7 : Accéder aux pages des attaques**
+- Scénario 3 (injection SQL) : `http://192.168.56.10/vulnerabilities/sqli/`
+- Scénario 4 (XSS) : `http://192.168.56.10/vulnerabilities/xss_r/`
+- Scénario 4 (directory traversal) : `http://192.168.56.10/vulnerabilities/fi/`
+
+## Problèmes rencontrés et solutions (DVWA)
+
+| Problème | Solution |
+|---|---|
+| Erreur 500 sur `setup.php`, log Apache montre `Access denied for user ''@'localhost'` | Le fichier `config.inc.php` a les clés `db_user`/`db_password` manquantes ou mal nommées. Vérifier avec `grep "db_user\|db_password" config/config.inc.php` et corriger si besoin. |
+| Connexion refusée avec `dvwa` / `dvwapass` sur `login.php` | Ce sont les identifiants MySQL, pas ceux du site. Utiliser `admin` / `password`. |
+
 ## 4. syslog-ng
 
 **1. Installation des paquets**
