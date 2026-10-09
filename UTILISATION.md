@@ -2,8 +2,6 @@
 
 ## Démarrer le système
 
-## Démarrer le système
-
 ### Snort (détection des intrusions)
 Sur la VM Ubuntu :
 ```bash
