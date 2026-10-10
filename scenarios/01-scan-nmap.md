@@ -32,4 +32,5 @@ Des dizaines d'alertes similaires apparaissent, une par port scanné.
 ![Détection dans Kibana](../screenshots/nmap-detecte.png)
 
 ## E-mail reçu
-(P4?)
+![Alert mail nmapL](../screenshots/mailnmap.png)
+
