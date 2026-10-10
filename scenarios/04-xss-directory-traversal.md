@@ -41,7 +41,9 @@ Directory transversal :
 
 
 ## Capture Kibana
-(P1?)
+![Kibana xss/direc](../screenshots/kibanaxssdirec.png)
 
 ## E-mail reçu
-(P4?)
+![Alert mail xss](../screenshots/mailxss.png)
+![Alert mail directory](../screenshots/maildirectory.png)
+
