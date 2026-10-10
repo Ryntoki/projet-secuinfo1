@@ -47,4 +47,4 @@ Filtre : `snort.signature : "SSH Brute Force attempt"`
 On voit l'attaquant `192.168.56.20` lancer de nombreuses connexions vers la cible `192.168.56.10` sur le port 22, en quelques secondes.
 
 ## E-mail reçu
-(P4?)
+![Alert mail brutessh](../screenshots/mailssh.png)
