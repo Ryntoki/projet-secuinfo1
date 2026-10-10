@@ -11,6 +11,10 @@ Le système repose sur deux machines virtuelles (VirtualBox) isolées communiqua
     *   **Elasticsearch & Kibana** (Suite Elastic) pour l'indexation des logs en temps réel et la création de tableaux de bord visuels.
 *   **VM Kali Linux (Attaquant - 192.168.56.20)** : Utilisée pour rejouer les scénarios d'attaque de manière contrôlée vers la VM Ubuntu.
 
+
+<img width="601" height="371" alt="schemasecu" src="https://github.com/user-attachments/assets/54dabe16-ba23-433c-8370-cd8b4441cf7a" />
+
+
 ## Contenu du dépôt
 
 | Élément | Contenu |
