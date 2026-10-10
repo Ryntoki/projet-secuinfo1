@@ -356,6 +356,7 @@ snort.sid >= 1000002
 
 ![Tableau des logs sous Kibana Discover](screenshots/kibanafin.png)
 
+## 7. Alerte par mail
 
 ## Problèmes rencontrés et solutions
 
