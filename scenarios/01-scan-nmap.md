@@ -24,7 +24,7 @@ signature typique d'un scan de ports.
 
 ## Logs collectés (/var/log/snort/alert)
 
-<img width="1850" height="159" alt="image" src="https://github.com/user-attachments/assets/b6fd4333-928b-420c-8e26-626f64df9879" />
+<img width="1856" height="75" alt="image" src="https://github.com/user-attachments/assets/34202e7a-056f-43b5-bef2-01cdcebbba19" />
 
 Des dizaines d'alertes similaires apparaissent, une par port scanné.
 
