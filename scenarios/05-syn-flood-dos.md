@@ -12,7 +12,7 @@ pas seulement une signature précise dans le contenu des paquets.
 
 ## Commande lancée (depuis Kali)
 
-sudo hping3 -S --flood -p 80 192.168.56.102
+sudo hping3 -S --flood -p 80 192.168.56.10
 
 ## Règle de détection (Snort)
 
