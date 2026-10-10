@@ -23,7 +23,12 @@ Le système repose sur deux machines virtuelles (VirtualBox) isolées communiqua
 
 ## Les 5 scénarios
 
-
+Le système est testé et validé face aux 5 vecteurs d'attaque suivants :
+1.  **Scan de ports** : Reconnaissance réseau effectuée avec `nmap` pour identifier les services ouverts.
+2.  **Brute force SSH** : Tentatives de connexion répétées sur le port 22 réalisées avec `hydra` via une liste de mots de passe.
+3.  **Injection SQL** : Exploitation d'une faille de base de données (extraction de tables/utilisateurs) via l'application web DVWA.
+4.  **XSS et Directory Traversal (LFI)** : Injection de code JavaScript (Cross-Site Scripting) et tentative d'accès aux fichiers sensibles du système (`/etc/passwd`) via DVWA.
+5.  **Déni de service (SYN Flood)** : Saturation de la cible par une inondation de requêtes TCP incomplètes générées avec `hping3` sur le port 80.
 
 ## Équipe
 
@@ -37,12 +42,22 @@ El Attari Kaouthar
 
 ### Bilan
 
+Ce projet a permis de mettre en œuvre un pipeline SIEM (Security Information and Event Management) fonctionnel et complet. La chaîne de traitement a été validée de bout en bout : de la génération du trafic malveillant jusqu'à sa visualisation en temps réel. La configuration de règles Snort spécifiques (SID > 1000000) couplée au formatage JSON dans syslog-ng a permis de filtrer efficacement le bruit réseau pour ne faire ressortir que les véritables alertes ciblées.
 
 ### Limites
 
+*   **Consommation de ressources :** Faire tourner Elasticsearch, Kibana, Snort, Apache et MariaDB sur une seule machine virtuelle est extrêmement gourmand et entraîne des instabilités au niveau de la RAM (comme l'Erreur 137 traitée lors de l'installation).
+*   **Détection passive (NIDS) :** Snort est ici configuré en mode détection uniquement (règles `alert`). Il génère des logs et prévient l'administrateur, mais ne bloque pas activement le trafic malveillant de l'attaquant.
+*   **Absence de corrélation avancée :** Le système centralise très bien les alertes individuelles, mais ne croise pas encore automatiquement les logs web d'Apache avec les alertes Snort pour reconstruire le parcours complet d'un attaquant.
 
 ### Améliorations possibles
 
+*   **Passage en mode IPS (Intrusion Prevention System) :** Implémenter Fail2Ban ou configurer Snort en mode actif pour bloquer automatiquement au niveau du pare-feu les adresses IP (comme le 192.168.56.20 de Kali) identifiées comme malveillantes.
+*   **Séparation des rôles (Architecture distribuée) :** Déporter la pile Elastic (Elasticsearch et Kibana) sur un serveur dédié pour alléger le serveur web cible. Cela éviterait aussi qu'une attaque par déni de service (comme le hping3) ne fasse tomber en même temps le système de supervision.
+*   **Centralisation des alertes e-mail :** Remplacer le script d'alerte indépendant par les fonctionnalités natives de *Watcher/ElastAlert* directement intégrées à Kibana, afin de déclencher les e-mails uniquement lors de corrélations complexes.
+
 ### Veille technologique
+
+L'architecture mise en place correspond à une approche SIEM traditionnelle (Collecte, Indexation, Détection par signature). Aujourd'hui, l'industrie de la cybersécurité s'oriente vers des solutions **XDR (Extended Detection and Response)** qui unifient de multiples sources de sécurité. Par ailleurs, la détection basée sur des règles écrites manuellement (comme nos fichiers Snort) montre ses limites face aux attaques inédites (Zero-Day). Les solutions modernes intègrent désormais des algorithmes d'analyse comportementale et de **Machine Learning** capables de détecter des anomalies réseau de manière proactive, sans nécessiter de base de signatures préalables.
 
 
