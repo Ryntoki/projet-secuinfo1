@@ -16,10 +16,10 @@ les utilisateurs du site (XSS), l'autre le système de fichiers du serveur
 ## Commandes lancées (depuis le navigateur, sur Kali)
 
 XSS :
-http://192.168.56.102/vulnerabilities/xss_r/?name=<script>alert(‘XSS’)</script>
+http://192.168.56.10/vulnerabilities/xss_r/?name=<script>alert(‘XSS’)</script>
 
 Directory traversal :
-http://192.168.56.102/vulnerabilities/fi/?page=../../../../etc/passwd
+http://192.168.56.10/vulnerabilities/fi/?page=../../../../etc/passwd
 
 ## Règles de détection (Snort)
 
