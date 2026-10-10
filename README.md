@@ -53,7 +53,7 @@ Ce projet a permis de mettre en œuvre un pipeline SIEM (Security Information an
 ### Améliorations possibles
 
 *   **Passage en mode IPS (Intrusion Prevention System) :** Implémenter Fail2Ban ou configurer Snort en mode actif pour bloquer automatiquement au niveau du pare-feu les adresses IP (comme le 192.168.56.20 de Kali) identifiées comme malveillantes.
-*   **Séparation des rôles (Architecture distribuée) :** Déporter la pile Elastic (Elasticsearch et Kibana) sur un serveur dédié pour alléger le serveur web cible. Cela éviterait aussi qu'une attaque par déni de service (comme le hping3) ne fasse tomber en même temps le système de supervision.
+*   **Séparation des rôles (Architecture distribuée) :** Déporter la pile Elastic (Elasticsearch et Kibana) sur un serveur dédié pour alléger le serveur web cible. Cela éviterait aussi qu'une attaque par déni de service (comme le hping3) ne fasse tomber en même temps le système de supervision (ce qui est réellement arrivé lors des tests).
 *   **Centralisation des alertes e-mail :** Remplacer le script d'alerte indépendant par les fonctionnalités natives de *Watcher/ElastAlert* directement intégrées à Kibana, afin de déclencher les e-mails uniquement lors de corrélations complexes.
 
 ### Veille technologique
