@@ -390,7 +390,7 @@ ES_CA = "/home/VOTRE_UTILISATEUR/alertes/http_ca.crt"
 ```bash
 nano ~/alertes/alerte.py
 ```
-Y coller le code disponible dans `config/alerte.py` du dépôt. Le script :
+Y coller le code disponible dans [config/alerte.py](config/alerte.py) du dépôt. Le script :
 - interroge Elasticsearch toutes les 30 secondes ;
 - ne garde que nos règles personnalisées (`snort.sid >= 1000002`) ;
 - envoie un e-mail par type d'attaque (anti-spam prévu) avec un conseil (de base) adapté.
