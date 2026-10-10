@@ -24,7 +24,7 @@ distinguer un flood volumétrique d'un simple scan de ports.
 
 ## Logs collectés (/var/log/snort/alert)
 
-<img width="1846" height="96" alt="image" src="https://github.com/user-attachments/assets/217db61c-8261-4edb-8043-7b17e4c3db06" />
+<img width="1852" height="78" alt="image" src="https://github.com/user-attachments/assets/c32dbd94-b340-4d3f-91af-a72de1bbc908" />
 
 Des centaines d'alertes similaires en quelques secondes, une par paquet SYN détecté.
 
