@@ -18,7 +18,7 @@ Le système repose sur deux machines virtuelles (VirtualBox) isolées communiqua
 | [INSTALLATION.md](INSTALLATION.md) | Installation pas à pas de tout le système |
 | [UTILISATION.md](UTILISATION.md) | Comment lancer le système et rejouer les attaques |
 | [scenarios/](scenarios/) | Une fiche par attaque |
-| `config/` | Fichiers de configuration (Docker, Suricata, syslog-ng, script d'alerte) |
+| `config/` | Fichiers de configuration (syslog-ng, script d'alerte) |
 | `screenshots/` | Captures d'écran |
 
 ## Les 5 scénarios
