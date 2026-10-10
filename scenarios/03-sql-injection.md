@@ -44,4 +44,4 @@ Filtre : `snort.signature : "SQL Injection attempt detecte"`
 L'alerte apparaît avec la priorité 1 : une injection SQL réussie permet de lire ou modifier toute la base de données.
 
 ## E-mail reçu
-(P4?)
+![Alerte mail SQL](../screenshots/mailsql.png)
