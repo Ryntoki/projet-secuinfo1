@@ -14,6 +14,8 @@ pas seulement une signature précise dans le contenu des paquets.
 
 sudo hping3 -S --flood -p 80 192.168.56.10
 
+![Console Kali dos](../screenshots/doskali.png)
+
 ## Règle de détection (Snort)
 
 alert tcp any any -> $HOME_NET any (msg:“DOS SYN Flood attempt detecte”; flags:S;
@@ -29,7 +31,7 @@ distinguer un flood volumétrique d'un simple scan de ports.
 Des centaines d'alertes similaires en quelques secondes, une par paquet SYN détecté.
 
 ## Capture Kibana
-(P1?)
+![Kibana DOS](../screenshots/kibanados.png)
 
 ## E-mail reçu
-(P4?)
+![Alert mail dos](../screenshots/maildos.png)
