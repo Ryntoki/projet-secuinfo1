@@ -4,7 +4,12 @@ Mise en place d'un système qui **détecte des attaques réseau**, **collecte le
 
 ## Architecture
 
-
+Le système repose sur deux machines virtuelles (VirtualBox) isolées communiquant via un réseau privé hôte (Host-Only) :
+*   **VM Ubuntu 24.04 (Cible et Défense - 192.168.56.10)** : Héberge les services cibles (Serveur Web Apache avec DVWA, Serveur SSH) ainsi que toute la pile de sécurité :
+    *   **Snort** (NIDS) configuré avec des règles personnalisées pour détecter les attaques.
+    *   **syslog-ng** pour centraliser, filtrer et formater les journaux (logs web, SSH et alertes Snort).
+    *   **Elasticsearch & Kibana** (Suite Elastic) pour l'indexation des logs en temps réel et la création de tableaux de bord visuels.
+*   **VM Kali Linux (Attaquant - 192.168.56.20)** : Utilisée pour rejouer les scénarios d'attaque de manière contrôlée vers la VM Ubuntu.
 
 ## Contenu du dépôt
 
