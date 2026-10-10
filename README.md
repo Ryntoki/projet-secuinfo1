@@ -37,10 +37,10 @@ Le système est testé et validé face aux 5 vecteurs d'attaque suivants :
 ## Équipe
 
  Membre : 
-Landry Rayann (Git : Ryntoki)
-Calmels Nathan (Git : Axelnat62)
-Djokic Aleksandar (Git : Aleksotique)
-El Attari Kaouthar (Git : Kaouthar-tout)
+Landry Rayann (Git : Ryntoki) /
+Calmels Nathan (Git : Axelnat62) /
+Djokic Aleksandar (Git : Aleksotique) /
+El Attari Kaouthar (Git : Kaouthar-tout) /
 
 ## Analyse et conclusion
 
