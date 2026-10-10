@@ -356,7 +356,56 @@ snort.sid >= 1000002
 
 ![Tableau des logs sous Kibana Discover](screenshots/kibanafin.png)
 
-## 7. Alerte par mail
+## 7. Alertes par mail
+
+Dans cette partie nous faisons un script python qui surveille Elasticsearch en continu et envoie un e-mail à l'administrateur dès qu'une de nos règles se déclenche, avec un conseil adapté au type d'attaque.
+
+**1 : Préparer le dossier et le certificat**
+Le script a besoin du certificat d'Elasticsearch, mais celui d'origine n'est lisible que par root. On en fait une copie accessible :
+```bash
+mkdir -p ~/alertes
+sudo cp /etc/elasticsearch/certs/http_ca.crt ~/alertes/http_ca.crt
+sudo chown $USER ~/alertes/http_ca.crt
+```
+
+**2 : Créer une adresse Gmail dédiée et un mot de passe d'application**
+- Créer un compte Gmail pour le projet (ex. `projetsecuinfo1@gmail.com`).
+- Activer la **validation en deux étapes** (Compte Google -> Sécurité).
+- Créer un **mot de passe d'application** (rechercher “mots de passe des applications“ dans les réglages du compte) Google vous donne ensuite un code de 16 lettres.
+
+**3 : Créer le fichier de configuration**
+```bash
+nano ~/alertes/config.py
+```
+Y mettre (en adaptant les valeurs). Remplacer aussi `VOTRE_UTILISATEUR` par votre nom d'utilisateur Ubuntu :
+```python
+MAIL_FROM = "projetsecuinfo1@gmail.com"
+MAIL_PASSWORD = "le_code_de_16_lettres"
+MAIL_TO = "adresse_de_l_admin@exemple.com"
+ES_PASSWORD = "le_mot_de_passe_elastic"
+ES_CA = "/home/VOTRE_UTILISATEUR/alertes/http_ca.crt"
+```
+
+**4 : Créer le script**
+```bash
+nano ~/alertes/alerte.py
+```
+Y coller le code disponible dans `config/alerte.py` du dépôt. Le script :
+- interroge Elasticsearch toutes les 30 secondes ;
+- ne garde que nos règles personnalisées (`snort.sid >= 1000002`) ;
+- envoie un e-mail par type d'attaque (anti-spam prévu) avec un conseil (de base) adapté.
+
+**5 : Installer la dépendance et lancer**
+```bash
+pip install requests --break-system-packages
+cd ~/alertes && python3 alerte.py
+```
+Le message “Surveillance demarree…” s'affiche. Laissez ce terminal ouvert car il fait tourner le programme . À la prochaine attaque, l'administrateur reçoit un e-mail détaillant le type d'attaque, l'IP de l'attaquant, la cible, l'heure et la marche à suivre.
+
+![Exemple d'email reçu](screenshots/mailsql.png)
+
+(Un avertissement `DeprecationWarning` sur `datetime.utcnow()` peut apparaître mais il sans effet, le script fonctionne et le premier e-mail arrive souvent dans les spams : le marquer “non-spam“ l'adresse du projet).
+
 
 ## Problèmes rencontrés et solutions
 
@@ -375,3 +424,4 @@ snort.sid >= 1000002
 | `Ctrl+C` ne stoppe pas Snort en mode console | Snort attend un paquet pour traiter l'arrêt : générer un peu de trafic, ou `sudo pkill snort` depuis un autre terminal. |
 | Les champs `snort.*` n'apparaissent pas dans Kibana | syslog-ng avait envoyé des alertes avant le parser : supprimer l'index (`DELETE projet-secu-AAAA.MM.JJ` dans Dev Tools), supprimer `/var/lib/syslog-ng/syslog-ng.persist`, redémarrer syslog-ng, relancer une attaque. |
 | Le filtre Kibana `snort.sid >= 1000002` laissait passer du bruit | Le champ `sid` était du texte, la comparaison numérique ne marchait pas donc il a fallu forcer le type des valeurs pour qu’ils puisse fonctionner| 
+| Le mail affiche "Attaque" (donc n'a pas su trouver l'attaque) et "?" au lieu des vraies infos | Les champs sont dans un objet `snort` donc le script lit `donnees.get("snort", {}).get("src_ip")` et pas `donnees.get("snort.src_ip")`. |
