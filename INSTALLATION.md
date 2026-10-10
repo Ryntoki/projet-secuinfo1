@@ -5,16 +5,17 @@ Suivre les étapes dans l'ordre.
 ## 1. Machines virtuelles
 
 Le projet utilise deux machines virtuelles dans VirtualBox :
-- **une VM Ubuntu** : le serveur surveillé, avec ses cibles (site web Apache et accès SSH) et tous les outils de détection, de collecte et de visualisation ;
-- **une VM Kali** : l'attaquant, utilisée pour lancer les 5 scénarios.
+- **une VM Ubuntu** : le serveur surveillé, avec ses cibles (site web DVWA et accès SSH) et tous les outils de détection, de collecte et de visualisation ;
+- **une VM Kali** : l'attaquant, utilisée pour lancer les 5 scénarios. 
+
 
 Les deux VM communiquent sur un réseau privé isolé. Les attaques ne sortiront jamais de ce réseau.
 
 ### Prérequis
-- **VirtualBox 7.2 ou plus récent.** (La version 7.1 ne permet pas d'installer les Additions invité sur le noyau 7.0 d'Ubuntu 24.04.5 (voir « problèmes rencontrés »)).
-- L'image **Ubuntu 24.04 LTS Desktop** : "ubuntu-24.04.5-desktop-amd64.iso" (ubuntu.com, rubrique "past releases"). On n'utilise pas Ubuntu 26.04 : trop récente, certains outils risquent de ne pas encore être compatibles donc on ne prend pas de risques.
-- L'image **Kali pour VirtualBox** (kali.org, rubrique "Get Kali -> Virtual Machines").
-- Un PC avec **16 Go de RAM** recommandés pour faire tourner les deux VM en même temps (moins c'est possible mais cela risque d'être plus long pour certains éléménts).
+- **VirtualBox 7.2 ou plus récent.**
+- L'image **[Ubuntu 24.04](https://releases.ubuntu.com/24.04/)** (fichier `ubuntu-24.04.x-desktop-amd64.iso`). On n'utilise pas Ubuntu 26.04 car trop récente certains outils risquent de ne pas encore être compatibles donc on ne prend pas de risque.
+- L'image **[Kali Linux pour VirtualBox](https://www.kali.org/get-kali/#kali-virtual-machines)** (choisir le format “Virtual Machines -> VirtualBox“).
+- Un PC avec **16 Go de RAM** (recommandé pour pouvoir faire fonctionner de bonne manière les deux VM, en dessous c’est possible mais aussi forcément plus lent).
 
 ### Création de la VM Ubuntu
 Dans VirtualBox : **Machine -> Nouvelle**, choisir l'ISO Ubuntu, puis les réglages suivants :
@@ -26,31 +27,32 @@ Dans VirtualBox : **Machine -> Nouvelle**, choisir l'ISO Ubuntu, puis les régla
 | Processeurs | 4 | Suffisant pour faire tourner tous les outils |
 | Disque | 50 Go, non pré-alloué | Le fichier n'occupe que l'espace réellement utilisé |
 | Carte réseau 1 | NAT | Accès à Internet pour les téléchargements |
-| Carte réseau 2 | Réseau privé hôte | Réseau isolé entre Ubuntu et Kali qui utilisé pour les attaques |
+| Carte réseau 2 | Réseau privé hôte | Réseau isolé entre Ubuntu et Kali, utilisé pour les attaques |
 
 ![Réglages de la VM Ubuntu](screenshots/reglagesubuntu.png)
 
-Installation d'Ubuntu : "installer Ubuntu" -> installation interactive -> sélection par défaut -> "effacer le disque et installer Ubuntu" (cela n'efface que le disque virtuel de la VM).
+Installation d'Ubuntu : "installer Ubuntu" -> installation interactive -> sélection par défaut -> "effacer le disque et installer Ubuntu" (cela n'efface que le disque virtuel de la VM et non le votre).
 
 ### Mise à jour du système
 ```bash
 sudo apt update && sudo apt upgrade -y
 ```
-Si Ubuntu propose ensuite de passer à la version 26.04, il faut refuser
-### Additions invité (copier-coller entre Windows et la VM ce qui facilitera la suite pour votre installation)
+Si Ubuntu propose ensuite de passer à la version 26.04, il faut refuser (important, on n’est jamais sûr de si tout devient incompatible avec une MAJ).
+
+### Additions invité (copier-coller entre Windows et la VM, pas obligatoire mais pratique)
 Menu VirtualBox : **périphériques -> insérer l'image CD des additions invité**, puis dans le terminal :
 ```bash
 sudo apt install -y bzip2 gcc make perl linux-headers-$(uname -r) build-essential dkms
 sudo sh /media/$USER/VBox_GAs_*/VBoxLinuxAdditions.run
 sudo reboot
 ```
-Enfin : **périphériques -> presse-papier partagé -> bidirectionnel**. Dans le Terminal on peut maintenant coller avec “Ctrl+Maj+V”.
+Enfin : **périphériques -> presse-papier partagé -> bidirectionnel**. Dans le Terminal on peut maintenant coller avec "Ctrl+Maj+V".
 
 ### Import de la VM Kali
 1. Extraire l'archive (en ".7z") (clic droit -> extraire tout) dans le dossier où sont rangées les VM.
 2. Dans VirtualBox : **machine -> open…**, puis sélectionner le fichier ".vbox" de Kali.
 3. Configuration : mémoire vive 2048 Mo, carte réseau 1 en NAT, carte réseau 2 en réseau privé hôte.
-4. Démarrer Kali et utiliser les identifiants par défaut : “kali” / “kali”.
+4. Démarrer Kali et utiliser les identifiants par défaut : "kali" / "kali".
 
 ![Les deux VM dans VirtualBox](screenshots/vm-liste.png)
 
@@ -70,19 +72,19 @@ Sur **Kali** (carte "eth1", connexion "Wired connection 2") :
 sudo nmcli con mod "Wired connection 2" ipv4.addresses 192.168.56.20/24 ipv4.method manual
 sudo nmcli con up "Wired connection 2"
 ```
-La carte NAT ("enp0s3" / "eth0") n'est pas modifiée : elle sert à l'accès Internet.
+La carte NAT ("enp0s3" / "eth0") n'est pas modifiée car elle sert à l'accès internet.
 
 ### Test de communication
 Depuis Kali :
 ```bash
 ping -c 4 192.168.56.10
 ```
-Résultat obtenu : 4 paquets envoyés, 4 reçus, 0 % de perte. Les deux VM communiquent.
+Résultat obtenu : 4 paquets envoyés, 4 reçus, 0 % de perte donc les deux VM communiquent.
 
 ![Résultat du ping](screenshots/vm-ping.png)
 
 
-## 2. Elasticsearch et Kibana 
+## 2. Elasticsearch et Kibana
 
 **1 : Mise à jour de la machine**
 ```bash
@@ -106,85 +108,46 @@ sudo apt update
 sudo apt install elasticsearch kibana -y
 ```
 
-**5 : Démarrer les services**
+**5 : Limiter la mémoire d'Elasticsearch (avant le premier démarrage)**
+Elasticsearch consomme beaucoup de RAM. On la limite pour éviter l'erreur de démarrage (status = 137). Avec une VM à 8 Go, mettre `1g` ; avec moins, mettre `512m` :
+```bash
+echo "-Xms1g" | sudo tee /etc/elasticsearch/jvm.options.d/heap.options
+echo "-Xmx1g" | sudo tee -a /etc/elasticsearch/jvm.options.d/heap.options
+```
+
+**6 : Démarrer les services**
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable --now elasticsearch
 sudo systemctl enable --now kibana
 ```
 
-**6 : Vérification si Elastic est actif**
+**7 : Vérifier qu'Elastic est actif**
 ```bash
 sudo systemctl status elasticsearch.service
 ```
-
-Si Elastic ne se lance pas, possible erreur avec la RAM (status = 137).
+Doit afficher `active (running)`. En cas d'erreur `status = 137`, vérifier l'étape 5 puis `sudo systemctl restart elasticsearch`.
 
 ![Erreur RAM](screenshots/Erreur_RAM.png)
 
-Alors copier ces commandes (on limite l'utilisation de la RAM à 512 Mo car il consomme beaucoup sinon) :
-```bash
-echo "-Xms512m" | sudo tee /etc/elasticsearch/jvm.options.d/heap.options
-echo "-Xmx512m" | sudo tee -a /etc/elasticsearch/jvm.options.d/heap.options
-```
-
-Il faut alors relancer Elastic avec la commande :
-```bash
-sudo systemctl restart elasticsearch
-```
-
-**7 : Configurer la connexion à Elastic**
+**8 : Configurer la connexion à Elastic**
 Lien web vers Elastic : `http://localhost:5601`
-
-Vous arrivez ici : 
 
 ![Token elastic](screenshots/token_elastic.png)
 
-Commande pour générer le token d'enrôlement (expire en 30 minutes, à refaire en utilisant la même commande) :
+Générer le token d'enrôlement (expire en 30 minutes, à refaire avec la même commande si besoin) :
 ```bash
 sudo /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana
 ```
-
-Pour avoir le code de vérification, utiliser cette commande :
+Obtenir le code de vérification :
 ```bash
 sudo /usr/share/kibana/bin/kibana-verification-code
 ```
-
-Commande pour générer le mot de passe du compte admin elastic (à garder précieusement) :
+Générer le mot de passe du compte admin elastic (à garder précieusement) :
 ```bash
 sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic
 ```
-
-Les identifiants du compte sont donc :
-* **Username** : `elastic`
-* **Password** : *(mdp généré par la commande)*
-
-**8 : Création de la Data View dans Kibana**
-1. Accéder à l'interface web : `http://localhost:5601`.
-2. Aller dans : **Management -> Stack Management -> Data Views -> Create data view**.
-3. Renseigner les paramètres suivants :
-   * **Name** : `Projet Secu`
-   * **Index pattern** : `projet-secu-*`
-   * **Timestamp field** : `@timestamp`
-
-![Configuration de la Data View](screenshots/data%20view.png)
-
-**9 : Exploration et vue tabulaire des événements (Discover)**
-Dans le menu **Discover**, sélectionner la Data View `Projet Secu` et ajouter les colonnes requises pour analyser les incidents :
-* `@timestamp` : horodatage précis de l'attaque
-* `src_ip` : adresse IP attaquante (Kali : `192.168.56.20`)
-* `dest_ip` : adresse IP cible (Ubuntu : `192.168.56.10`)
-* `message` : descriptif et signature de l'attaque détectée
-
-![Tableau des logs sous Kibana Discover](screenshots/visualisation%20des%20attaques.png)
-
-**10 : Dashboard de supervision SOC**
-Dans le menu **Dashboards -> Create dashboard**, mise en place des visualisations de suivi :
-* **Compteur d'alertes (Metric)** : affiche le total des 5 attaques détectées sur la période.
-* **Tableau de suivi chronologique** : détails exploitables pour l'analyste SOC.
-* **Plage temporelle** : ajustée sur les 15 derniers jours pour englober l'ensemble des scénarios d'attaque.
-
-![Dashboard SOC Kibana](screenshots/dashboard%205%20attaques.png)
+Identifiants : **Username** `elastic` / **Password** *(généré par la commande)*.
 
 
 
@@ -200,143 +163,61 @@ Si une ligne « Candidat : 2.9… » apparaît, Snort s'installe en une seule co
 ```bash
 sudo apt install snort -y
 ```
-Pendant l'installation, deux questions sont posées :
-- Interface réseau à surveiller : `enp0s8` (la carte du réseau privé hôte, celle
-  utilisée pour les attaques, pas `enp0s3`, qui est la carte NAT utilisée
-  uniquement pour l'accès Internet).
+Pendant l'installation, deux questions peuvent être posées (sinon on les règle à l'étape 3) :
+- Interface réseau à surveiller : `enp0s8` (la carte du réseau privé hôte, pas `enp0s3` qui est la carte NAT).
 - Adresse du réseau local (HOME_NET) : `192.168.56.0/24`.
 
-**3 : Vérifier/corriger la configuration**
+**3 : Vérifier / corriger la configuration**
 ```bash
 sudo grep DEBIAN_SNORT /etc/snort/snort.debian.conf
 ```
-Le résultat attendu :
-
+Résultat attendu :
+```
 DEBIAN_SNORT_STARTUP="boot"
 DEBIAN_SNORT_HOME_NET="192.168.56.0/24"
-DEBIAN_SNORT_OPTIONS=""
 DEBIAN_SNORT_INTERFACE="enp0s8"
-DEBIAN_SNORT_SEND_STATS="true"
-
-Si `DEBIAN_SNORT_INTERFACE` contient plusieurs interfaces (ex. `"enp0s3 enp0s8"`),
-la corriger pour ne garder que `enp0s8` :
+```
+Si `DEBIAN_SNORT_INTERFACE` ne contient pas `enp0s8`, le corriger :
 ```bash
 sudo sed -i 's/^DEBIAN_SNORT_INTERFACE=.*/DEBIAN_SNORT_INTERFACE="enp0s8"/' /etc/snort/snort.debian.conf
 ```
 
-**4 : Valider la configuration**
+**4 : Ajouter les règles de détection des 5 scénarios (avec priorités)**
+```bash
+echo 'alert tcp any any -> $HOME_NET any (msg:"SCAN Possible nmap scan detecte"; flags:S; threshold: type threshold, track by_src, count 5, seconds 3; sid:1000002; rev:1; classtype:attempted-recon; priority:3;)' | sudo tee -a /etc/snort/rules/local.rules
+echo 'alert tcp any any -> $HOME_NET 22 (msg:"SSH Brute Force attempt"; flow:to_server,established; threshold: type threshold, track by_src, count 5, seconds 10; sid:1000003; rev:1; classtype:attempted-admin; priority:2;)' | sudo tee -a /etc/snort/rules/local.rules
+echo 'alert tcp any any -> $HOME_NET 80 (msg:"SQL Injection attempt detecte"; content:"UNION"; nocase; http_uri; sid:1000004; rev:1; classtype:web-application-attack; priority:1;)' | sudo tee -a /etc/snort/rules/local.rules
+echo 'alert tcp any any -> $HOME_NET 80 (msg:"XSS attempt detecte"; content:"<script"; nocase; http_uri; sid:1000005; rev:1; classtype:web-application-attack; priority:2;)' | sudo tee -a /etc/snort/rules/local.rules
+echo 'alert tcp any any -> $HOME_NET 80 (msg:"Directory Traversal attempt detecte"; content:"../"; http_uri; sid:1000006; rev:1; classtype:web-application-attack; priority:1;)' | sudo tee -a /etc/snort/rules/local.rules
+echo 'alert tcp any any -> $HOME_NET any (msg:"DOS SYN Flood attempt detecte"; flags:S; threshold: type threshold, track by_src, count 50, seconds 2; sid:1000007; rev:1; classtype:attempted-dos; priority:1;)' | sudo tee -a /etc/snort/rules/local.rules
+```
+Les `sid` commencent à 1000002 : les valeurs sous 1 000 000 sont réservées aux règles officielles de Snort, celles au-dessus sont libres pour nos règles personnalisées. Le détail de chaque règle et des priorités est donné dans les fiches `scenarios/`.
+
+**5 : Valider la configuration**
 ```bash
 sudo snort -T -c /etc/snort/snort.conf -i enp0s8
 ```
-Le message final attendu est « Snort successfully validated the configuration! ».
+Message attendu : « Snort successfully validated the configuration! ».
 
-**5 : Ajouter les règles de détection des 5 scénarios (avec priorités)**
-
-```bash
-echo 'alert tcp any any -> $HOME_NET any (msg:"SCAN Possible nmap scan detecte"; flags:S; threshold: type threshold, track by_src, count 5, seconds 3; sid:1000002; rev:1; classtype:attempted-recon; priority:3;)' | sudo tee -a /etc/snort/rules/local.rules
-```
-Détecte les paquets SYN (`flags:S`, premier paquet d'une connexion TCP) : au-delà
-de 5 en 3 secondes depuis la même source (`threshold`), c'est un balayage de
-ports plutôt qu'une navigation normale.
-
-```bash
-echo 'alert tcp any any -> $HOME_NET 22 (msg:"SSH Brute Force attempt"; flow:to_server,established; threshold: type threshold, track by_src, count 5, seconds 10; sid:1000003; rev:1; classtype:attempted-admin; priority:2;)' | sudo tee -a /etc/snort/rules/local.rules
-
-```
-Cible uniquement le port SSH (22) et les connexions réellement établies
-(`flow:to_server,established`). Seuil de 5 tentatives en 10 secondes : une
-succession rapide d'authentifications trahit un outil comme hydra.
-
-```bash
-echo 'alert tcp any any -> $HOME_NET 80 (msg:"SQL Injection attempt detecte"; content:"UNION"; nocase; http_uri; sid:1000004; rev:1; classtype:web-application-attack; priority:1;)' | sudo tee -a /etc/snort/rules/local.rules
-```
-Cherche le mot-clé `UNION` dans l'URL des requêtes HTTP (`http_uri`), sans
-tenir compte de la casse (`nocase`). Une seule occurrence suffit à déclencher
-l'alerte, pas besoin de seuil.
-
-```bash
-echo 'alert tcp any any -> $HOME_NET 80 (msg:"XSS attempt detecte"; content:"<script"; nocase; http_uri; sid:1000005; rev:1; classtype:web-application-attack; priority:2;)' | sudo tee -a /etc/snort/rules/local.rules
-```
-Même logique que l'injection SQL, mais recherche la balise `<script` dans l'URL :
-signature typique d'une tentative d'injection de code côté navigateur.
-
-```bash
-echo 'alert tcp any any -> $HOME_NET 80 (msg:"Directory Traversal attempt detecte"; content:"../"; http_uri; sid:1000006; rev:1; classtype:web-application-attack; priority:1;)' | sudo tee -a /etc/snort/rules/local.rules
-```
-Recherche le motif `../` dans l'URL, utilisé pour remonter hors du dossier web
-et accéder à des fichiers du système normalement inaccessibles.
-
-```bash
-echo 'alert tcp any any -> $HOME_NET any (msg:"DOS SYN Flood attempt detecte"; flags:S; threshold: type threshold, track by_src, count 50, seconds 2; sid:1000007; rev:1; classtype:attempted-dos; priority:1;)' | sudo tee -a /etc/snort/rules/local.rules
-```
-Même principe que la règle de scan, mais avec un seuil bien plus élevé (50 paquets
-SYN en 2 secondes) : ce volume distingue une inondation visant à saturer le
-serveur d'un simple scan de ports.
-
-Les `sid` (identifiants de règle) commencent à 1000002 : les valeurs en dessous
-de 1 000 000 sont réservées aux règles officielles de Snort, celles au-dessus
-sont libres pour nos règles personnalisées.
-
-### Vue d’ensemble des priorités
-
-**Priorité 1** : Impact confirmé et immédiat
-Dès que l’alerte se déclenche, le dommage est déjà fait (donnée volée, fichier lu, service saturé), il n’y a pas d’incertitude sur la réussite de l’attaque.
-Injection SQL	, Directory traversal et SYN flood (DoS) font parties de cette catégorie.
-
-**Priorité 2** : Risque sérieux mais conditionnel
-L’attaque peut causer de gros dégâts, mais son succès dépend d’une condition supplémentaire (deviner le bon mot de passe, qu’une victime clique sur un lien).
-Brute force SSH et XSS réfléchi sont de priorités 2, brute force est grave si elle réussi, mais la majorité des tentatives échouent. XSS devient dangeureux seulement si une victime clique sur le lien piégé.
-
-**Priorité 3** : Pas de dommage direct
-L’action en elle-même ne compromet rien ; elle sert à préparer une attaque future.
-Scan de ports (nmap) est dans cette catégorie, car aucune donnée n'est volée, aucun système n'est touché : c’est juste de la reconnaissance, une étape préparatoire avant une éventuelle vraie attaque.
-
-**6 : Démarrer et vérifier le service**
-```bash
-sudo systemctl restart snort
-sudo systemctl status snort
-```
-Le statut doit afficher `active (running)`.
-
-**7 : Lancer Snort en mode console pour les tests et captures**
-
-**ATTENTION** :Toujours arrêter le service avant, pour éviter que deux instances de Snort
-surveillent la même interface en même temps (alertes en double, conflit d'accès) :
+**6 : Lancer Snort (mode console)**
+C'est ce mode qui écrit dans `/var/log/snort/alert`, le fichier lu par syslog-ng. On arrête d'abord le service pour éviter deux instances sur la même interface :
 ```bash
 sudo systemctl stop snort
 sudo snort -A fast -q -c /etc/snort/snort.conf -i enp0s8 -l /var/log/snort
 ```
-**Important** : c'est ce mode (console, avec `-l /var/log/snort`) qui écrit dans
-`/var/log/snort/alert`, le fichier lu par syslog-ng. Le service seul (`systemctl
-start snort`) écrit dans un fichier différent (`/var/log/snort/snort.alert.fast`)
-que syslog-ng ne lit pas. **Pour toute démonstration ou capture d'alertes, toujours
-utiliser le mode console, jamais le service seul.**
+Laisser ce terminal ouvert pendant les démonstrations : c'est lui qui alimente la collecte. Le service seul (`systemctl start snort`) écrit dans un autre fichier que syslog-ng ne lit pas.
 
-**8 : Remettre le service en fonctionnement normal**
-```bash
-sudo systemctl start snort
-```
 
-## Problèmes rencontrés et solutions
+## 4. Site web cible : DVWA
 
-| Problème | Solution |
-|---|---|
-| `grep: /etc/snort/snort.debian.conf: Permission denied` | Le fichier n'est lisible que par root : ajouter `sudo` devant la commande. |
-| Les alertes DVWA (XSS, injection SQL) ne se déclenchent pas en testant depuis le navigateur d'Ubuntu | Le trafic local (`localhost`) ne passe jamais par l'interface réseau `enp0s8` surveillée par Snort. Toujours tester en visant `192.168.56.10` depuis la VM Kali. |
-| Le service `snort` tourne mais syslog-ng ne reçoit rien | Le service écrit dans `/var/log/snort/snort.alert.fast`, pas dans `/var/log/snort/alert`. Utiliser le mode console (`-A fast -l /var/log/snort`, étape 7) pour les tests/démos, c'est le seul qui alimente syslog-ng. |
-| `Ctrl+C` ne stoppe pas immédiatement Snort en mode console | Snort attend qu'un paquet arrive sur l'interface pour traiter le signal d'arrêt. Générer un peu de trafic (ping, navigation) ou utiliser `sudo pkill snort` depuis un second terminal. |
-
-## Site web cible pour les attaques 3 et 4 (DVWA)
-
-Nécessaire pour l'injection SQL (scénario 3) et le XSS / directory traversal
-(scénario 4) : un site web volontairement vulnérable, DVWA (Damn Vulnerable
-Web Application).
+Ce site est volontairement vulnérable et elle sera notre victime des scénarios 3 (injection SQL) et 4 (XSS / directory traversal).
 
 **1 : Installer Apache, PHP et MariaDB**
 ```bash
-sudo apt install apache2 php libapache2-mod-php php-mysqli php-gd mariadb-server git -y
+sudo apt install apache2 php libapache2-mod-php php-mysqli php-gd mariadb-server git openssh-server -y
 sudo systemctl enable --now apache2 mariadb
 ```
+(OpenSSH est installé ici parce qu’il sert de victime au scénario 2, brute force SSH.)
 
 **2 : Installer DVWA**
 ```bash
@@ -362,47 +243,41 @@ sudo systemctl restart apache2
 ```
 
 **5 : Initialiser la base depuis le navigateur**
-- Depuis Kali : `http://192.168.56.10/setup.php`
+- Depuis Kali sur Firefox `http://192.168.56.10/setup.php`
 - Cliquer sur **Create / Reset Database**.
 
-**6 : Se connecter**
-- `http://192.168.56.10/login.php`
-- Identifiants : `admin` / `password`
-  *(différents des identifiants MySQL `dvwa` / `dvwapass`, utilisés uniquement dans le fichier de config)*
-- Une fois connecté : menu **DVWA Security** → sélectionner **Low** → **Submit**.
-  À refaire si on se reconnecte avec une nouvelle session.
+**6 : Se connecter et régler la sécurité**
+- `http://192.168.56.10/login.php`, identifiants `admin` / `password` 
+- Menu **DVWA Security** -> **Low** -> **Submit** (à refaire à chaque nouvelle session).
 
-**7 : Accéder aux pages des attaques**
-- Scénario 3 (injection SQL) : `http://192.168.56.10/vulnerabilities/sqli/`
-- Scénario 4 (XSS) : `http://192.168.56.10/vulnerabilities/xss_r/`
-- Scénario 4 (directory traversal) : `http://192.168.56.10/vulnerabilities/fi/`
-
-## Problèmes rencontrés et solutions (DVWA)
-
-| Problème | Solution |
-|---|---|
-| Erreur 500 sur `setup.php`, log Apache montre `Access denied for user ''@'localhost'` | Le fichier `config.inc.php` a les clés `db_user`/`db_password` manquantes ou mal nommées. Vérifier avec `grep "db_user\|db_password" config/config.inc.php` et corriger si besoin. |
-| Connexion refusée avec `dvwa` / `dvwapass` sur `login.php` | Ce sont les identifiants MySQL, pas ceux du site. Utiliser `admin` / `password`. |
-
-## 4. syslog-ng
-
-**1. Installation des paquets**
-
+**7 : Créer un compte cible pour le brute force (scénario 2)**
+Le scénario 2 attaque un compte SSH volontairement faible. On le crée sur la VM Ubuntu :
 ```bash
-sudo apt update && sudo apt install openssh-server apache2 syslog-ng -y
+sudo adduser vboxuser
+```
+Choisir un mot de passe simple (ex. `azerty123`, il faudra le réutiliser pour le scénario 2 cf son fichier prévu) et valider les questions suivantes avec entrée.
+
+
+## 5. syslog-ng (collecte des logs)
+
+**1 : Installation**
+```bash
+sudo apt install syslog-ng syslog-ng-mod-http -y
 ```
 
-**2. Ajout de la configuration à la fin du fichier syslog-ng.conf**
-
-```bash
-sudo nano /etc/syslog-ng/syslog-ng.conf
+**2 : Ajouter la configuration**
+À la fin du fichier `/etc/syslog-ng/syslog-ng.conf` (`sudo nano /etc/syslog-ng/syslog-ng.conf`) il faudra ajouter le bloc suivant. Il collecte les logs SSH, les logs web et les alertes Snort, découpe ces alertes en champs (IP, type d'attaque, priorité) et envoie le tout à elasticsearch. Remplacer `VOTRE_MOT_DE_PASSE_ELASTIC` par le mot de passe du compte `elastic` qu’on a pus avoir à l’étape précédente.
 ```
-A rajouter à la fin du fichier : 
-
-```bash
 source s_ssh { file("/var/log/auth.log"); };
 source s_web { file("/var/log/apache2/access.log" flags(no-parse)); };
 source s_snort { file("/var/log/snort/alert" flags(no-parse)); };
+
+parser p_snort {
+    regexp-parser(
+        patterns('\[\*\*\] \[(?<gid>\d+):(?<sid>\d+):(?<rev>\d+)\] (?<signature>.*?) \[\*\*\](?: \[Classification: (?<classification>[^\]]*)\])? \[Priority: (?<priority>\d+)\] \{(?<proto>\w+)\} (?<src_ip>[\d.]+)(?::(?<src_port>\d+))? -> (?<dest_ip>[\d.]+)(?::(?<dest_port>\d+))?')
+        prefix("snort.")
+    );
+};
 
 destination d_elastic {
     elasticsearch-http(
@@ -412,29 +287,90 @@ destination d_elastic {
         user("elastic")
         password("VOTRE_MOT_DE_PASSE_ELASTIC")
         tls(ca-file("/etc/elasticsearch/certs/http_ca.crt"))
+        template("$(format-json --scope rfc5424 --scope nv-pairs --exclude DATE --key ISODATE @timestamp=${ISODATE})")
     );
 };
 
-log {
-    source(s_ssh);
-    source(s_web);
-    source(s_snort);
-    destination(d_elastic);
-};
+log { source(s_ssh); source(s_web); destination(d_elastic); };
+log { source(s_snort); parser(p_snort); destination(d_elastic); };
 ```
 
-**3. Redémarrage du service pour appliquer les changements**
-
+**3 : Vérifier et redémarrer**
 ```bash
+sudo syslog-ng --syntax-only
 sudo systemctl restart syslog-ng
 ```
+Si rien ne s'affiche à la vérification (hormis des “warning” sans importance car le tout fonctionnera toujours) la configuration est valide.
 
-## 5. Alertes par e-mail
 
+## 6. Visualisation dans Kibana
+
+**1 : Générer une première donnée**
+Depuis Kali, visiter le site (`http://192.168.56.10`) pour que syslog-ng crée l'index du jour dans elasticsearch.
+
+**2 : Forcer le bon type des champs**
+Par défaut, Elasticsearch stocke `snort.sid` et `snort.priority` comme du texte, ce qui empêche de filtrer de manière efficace lorsque l’on voudra voir nos attaques (et ainsi séparer les alertes faites par snorts plutôt que les notres). On crée un modèle qui impose les bons types à tous les index du projet. Dans Kibana, il faut cliquer sur les 3 barres -> **Dev Tools** et copier coller ainsi que exécuter :
+```json
+PUT _index_template/projet-secu
+{
+  "index_patterns": ["projet-secu-*"],
+  "template": {
+    "mappings": {
+      "properties": {
+        "snort.sid":      { "type": "integer" },
+        "snort.priority": { "type": "integer" },
+        "snort.src_ip":   { "type": "ip" },
+        "snort.dest_ip":  { "type": "ip" }
+      }
+    }
+  }
+}
+```
+
+**3 : Créer la Data View**
+Dans Kibana : **Management -> Stack Management -> Data Views -> Create data view** :
+
+- **Name** : `Projet Secu`
+- **Index pattern** : `projet-secu-*`
+- **Timestamp field** : `@timestamp`
+
+![Début configuration de la Data View](screenshots/stackmanagement.png)
+![Fin configuration de la Data View](screenshots/dataview.png)
+
+**4 : Renommer les champs (optionnel, pour la lisibilité)**
+Dans la Data View `Projet Secu`, éditer les champs (icône crayon) pour leur donner un libellé clair :
+
+| Champ | Libellé |
+|---|---|
+| `snort.src_ip` | Attaquant (IP) |
+| `snort.dest_ip` | Cible (IP) |
+| `snort.signature` | Type d'attaque |
+| `snort.priority` | Priorité |
+| `@timestamp` | Date |  
+
+**5 : Afficher le tableau des attaques (Discover)**
+Dans **Discover**, choisir la Data View `Projet Secu`, puis ajouter en colonnes les champs ci-dessus. Pour n'afficher que les vraies attaques (et écarter le bruit réseau)qui sont concernées par nos règles :
+```
+snort.sid >= 1000002
+```
+
+![Tableau des logs sous Kibana Discover](screenshots/kibanafin.png)
 
 
 ## Problèmes rencontrés et solutions
 
 | Problème | Solution |
 |---|---|
-| | |
+| Les Additions invité ne s'installent pas (« Look at /var/log/vboxadd-setup.log ») | VirtualBox 7.1 trop ancien pour le noyau 7.0 : mettre à jour VirtualBox vers la 7.2, puis réinstaller les Additions. |
+| Fenêtre « Mise à niveau vers Ubuntu 26.04 disponible » | Refuser, pour garder Ubuntu 24.04. |
+| PC éteint pendant une installation, la VM ne démarre plus (`VERR_SSM_INTEGRITY_DECOMPRESSION`) | Clic droit sur la VM -> « Oublier l'état sauvegardé » puis `sudo dpkg --configure -a` et `sudo apt install -f`. |
+| « Impossible de trouver le paquet elasticsearch » | Lancer `sudo apt update` après l'ajout du dépôt Elastic. |
+| Elasticsearch ne démarre pas (`status = 137`) | Mémoire insuffisante : limiter la mémoire (section 2, étape 5), puis `sudo systemctl restart elasticsearch`. |
+| Le token d'enrôlement est refusé par Kibana | Il expire après 30 minutes : en générer un nouveau avec la même commande. |
+| `systemctl is-active ssh` affiche « inactive » | Normal sur Ubuntu 24.04 : vérifier `ssh.socket`, qui doit être « active ». |
+| `grep: /etc/snort/snort.debian.conf: Permission denied` | Fichier lisible par root seulement : ajouter `sudo`. |
+| L'installation de Snort ne demande pas l'interface | Vérifier `DEBIAN_SNORT_INTERFACE` (section 3, étape 3). En mode console, l'interface est de toute façon précisée avec `-i enp0s8`. |
+| Le service `snort` tourne mais syslog-ng ne reçoit rien | Le service écrit dans un autre fichier que `/var/log/snort/alert`. Utiliser le mode console (section 3, étape 6)|
+| `Ctrl+C` ne stoppe pas Snort en mode console | Snort attend un paquet pour traiter l'arrêt : générer un peu de trafic, ou `sudo pkill snort` depuis un autre terminal. |
+| Les champs `snort.*` n'apparaissent pas dans Kibana | syslog-ng avait envoyé des alertes avant le parser : supprimer l'index (`DELETE projet-secu-AAAA.MM.JJ` dans Dev Tools), supprimer `/var/lib/syslog-ng/syslog-ng.persist`, redémarrer syslog-ng, relancer une attaque. |
+| Le filtre Kibana `snort.sid >= 1000002` laissait passer du bruit | Le champ `sid` était du texte, la comparaison numérique ne marchait pas donc il a fallu forcer le type des valeurs pour qu’ils puisse fonctionner| 
