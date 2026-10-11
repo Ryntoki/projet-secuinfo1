@@ -53,6 +53,7 @@ Ce projet a permis de mettre en œuvre un SIEM (Security Information and Event M
 *   **Consommation de ressources :** faire tourner Elasticsearch, Kibana, Snort, Apache et MariaDB sur une seule machine virtuelle est extrêmement gourmand et entraîne des instabilités au niveau de la RAM (comme l'erreur 137 traitée lors de l'installation).
 *   **Détection passive (NIDS) :** Snort est ici configuré en mode détection uniquement (règles `alert`). Il génère des logs et prévient l'administrateur, mais ne bloque pas le trafic malveillant de l'attaquant.
 *   **Absence de corrélation avancée :** le système centralise très bien les alertes individuelles, mais ne croise pas encore automatiquement les logs web d'Apache avec les alertes Snort pour reconstruire le parcours d'un attaquant.
+*   **Chevauchement des signatures SYN :** le scan de ports (`nmap -sS`) et le déni de service (SYN flood) reposent tous deux sur l'envoi de paquets SYN. Un scan rapide dépasse parfois le seuil de la règle du DoS et inversement un SYN flood déclenche aussi la règle de scan (son seuil, plus bas, est forcément franchi). Les deux alertes apparaissent alors en même temps. Dans un vrai SOC, on hiérarchiserait les règles (ignorer l'alerte de scan si un flood est déjà détecté) ou on affinerait les seuils pour mieux distinguer les deux.
 
 ### Améliorations possibles
 
